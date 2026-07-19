@@ -161,6 +161,12 @@
     letter-spacing: 1px;
   }
 
+  .timer-panel {
+    font-size: 12px;
+    color: #9a9483;
+    letter-spacing: 0.5px;
+  }
+
   .instructions {
     margin-top: 14px;
     font-size: 11px;
@@ -194,18 +200,19 @@
 
   .touch-controls {
     display: none;
+    width: 100%;
     margin-top: 14px;
-    justify-content: center;
-    gap: 16px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
   }
 
   .pad-group {
-    flex: 1;
-    max-width: 220px;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    align-items: center;
+    align-items: flex-end;
   }
 
   .pad-label {
@@ -216,8 +223,7 @@
   }
 
   .pad-btn {
-    width: 100%;
-    max-width: 140px;
+    width: 140px;
     padding: 18px 0;
     font-size: 20px;
     background: linear-gradient(180deg, #333, #1c1c1c);
@@ -236,6 +242,15 @@
   @media (pointer: coarse) {
     .touch-controls { display: flex; }
     .instructions { display: none; }
+  }
+
+  .quick-start-row {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 0 0 auto;
   }
 
   .champ-row {
@@ -506,6 +521,10 @@
   </div>
 
   <div class="touch-controls">
+    <div class="quick-start-row">
+      <button class="start-btn" id="soundBtn" style="background:linear-gradient(180deg,#555,#2a2a2a);border-color:#444;">🔊</button>
+      <button class="start-btn" id="startBtn">Iniciar</button>
+    </div>
     <div class="pad-group">
       <button class="pad-btn" id="p1up">▲</button>
       <button class="pad-btn" id="p1down">▼</button>
@@ -530,6 +549,13 @@
   </div>
   <div class="champ-panel" id="champPanel"></div>
 
+  <div class="target-row" id="difficultyRow">
+    <span class="target-label">Dificuldade do campeonato:</span>
+    <button class="target-btn" data-difficulty="facil">Fácil</button>
+    <button class="target-btn active" data-difficulty="medio">Médio</button>
+    <button class="target-btn" data-difficulty="dificil">Difícil</button>
+  </div>
+
   <div class="target-row" id="targetRow">
     <span class="target-label">Jogar até:</span>
     <button class="target-btn" data-target="3">3</button>
@@ -547,9 +573,9 @@
       <button class="dial-btn" data-mode="barreira">Barreira<span class="mini-trophy" data-trophy="barreira">🚧</span></button>
     </div>
     <div class="score-panel" id="score">00 : 00</div>
-    <button class="start-btn" id="soundBtn" style="background:linear-gradient(180deg,#555,#2a2a2a);border-color:#444;">🔊</button>
-    <button class="start-btn" id="startBtn">Iniciar</button>
+    <span class="timer-panel" id="timerDisplay" style="display:none;">⏱ 00:00</span>
   </div>
+
 
   <div class="instructions">
     <b>Mover:</b> W / S ou ↑ / ↓ &nbsp;&nbsp; <b>Iniciar/Pausar:</b> barra de espaço &nbsp;&nbsp;
@@ -624,13 +650,34 @@ const TRACKS = {
   },
 };
 
+// Multiplicadores aplicados sobre as fases de cada trilha, dando pelo menos
+// 3 níveis gerais de dificuldade além da escalada natural das 4 fases.
+const DIFFICULTY_MULTIPLIERS = {
+  facil:   { speed: 0.65, margin: 1.6, ball: 0.82 },
+  medio:   { speed: 1,    margin: 1,   ball: 1 },
+  dificil: { speed: 1.3,  margin: 0.6, ball: 1.18 },
+};
+let champDifficulty = 'medio';
+
+document.querySelectorAll('#difficultyRow .target-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#difficultyRow .target-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    champDifficulty = btn.dataset.difficulty;
+  });
+});
+
 let championshipActive = false;
 let currentTrack = null;
 let roundIndex = 0;
-let cpuSpeed = 3.1;
-let cpuMargin = 6;
-let ballBaseSpeed = 3.2;
+let cpuSpeed = 1.8;   // modo Praticar: CPU bem mais fácil
+let cpuMargin = 16;
+let ballBaseSpeed = 2.6;
 let targetScore = null; // null = modo livre, sem fim automático
+
+// --- Sistema de vidas do campeonato ---
+const STARTING_LIVES = 3;
+let lives = STARTING_LIVES;
 
 // --- Perfil do jogador e troféus (persistidos entre sessões) ---
 let playerName = null;
@@ -749,6 +796,7 @@ document.getElementById('practiceBtn').addEventListener('click', () => {
   resetRound();
   draw();
   updateModeButtons();
+  resetMatchTimer();
 });
 
 document.getElementById('champBtn').addEventListener('click', () => {
@@ -859,9 +907,10 @@ async function saveTrophies() {
 function showTrackInfo(track) {
   const t = TRACKS[track];
   const already = trophies[track];
+  const difficultyLabel = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' }[champDifficulty];
   showOverlay(
     `Campeonato ${t.label} ${t.trophy}`,
-    `${t.rounds.length} fases com dificuldade crescente, do ${t.rounds[0].name} ao ${t.rounds[t.rounds.length - 1].name}.` +
+    `${t.rounds.length} fases com dificuldade crescente, do ${t.rounds[0].name} ao ${t.rounds[t.rounds.length - 1].name}. Dificuldade geral: ${difficultyLabel}.` +
     (already ? ' Você já tem esse troféu — pode jogar de novo se quiser.' : ` Vença todas pra ganhar o troféu de ${t.label}.`),
     [
       { label: 'Iniciar', action: () => startChampionship(track) },
@@ -874,8 +923,10 @@ function startChampionship(track) {
   championshipActive = true;
   currentTrack = track;
   roundIndex = 0;
+  lives = STARTING_LIVES;
   updateChampButtons();
   document.getElementById('targetRow').style.display = 'none';
+  document.getElementById('difficultyRow').style.display = 'none';
   loadRound();
   running = true;
   document.getElementById('startBtn').textContent = 'Pausar';
@@ -886,15 +937,17 @@ function endChampionship() {
   championshipActive = false;
   currentTrack = null;
   targetScore = null;
-  cpuSpeed = 3.1;
-  cpuMargin = 6;
-  ballBaseSpeed = 3.2;
+  cpuSpeed = 1.8;
+  cpuMargin = 16;
+  ballBaseSpeed = 2.6;
   hideOverlay();
   updateChampButtons();
   document.getElementById('champPanel').style.display = 'none';
   document.getElementById('targetRow').style.display = 'flex';
+  document.getElementById('difficultyRow').style.display = 'flex';
   running = false;
   document.getElementById('startBtn').textContent = 'Iniciar';
+  resetMatchTimer();
 }
 
 function updateChampButtons() {
@@ -918,10 +971,11 @@ function updateModeButtons() {
 function loadRound() {
   const track = TRACKS[currentTrack];
   const r = track.rounds[roundIndex];
+  const mult = DIFFICULTY_MULTIPLIERS[champDifficulty];
   mode = currentTrack;
-  cpuSpeed = r.cpuSpeed;
-  cpuMargin = r.cpuMargin;
-  ballBaseSpeed = r.ballSpeed;
+  cpuSpeed = r.cpuSpeed * mult.speed;
+  cpuMargin = r.cpuMargin * mult.margin;
+  ballBaseSpeed = r.ballSpeed * mult.ball;
   targetScore = r.target;
   p1.score = 0;
   p2.score = 0;
@@ -929,6 +983,7 @@ function loadRound() {
   updateChampionshipPanel();
   resetRound();
   draw();
+  resetMatchTimer();
 }
 
 function updateChampionshipPanel() {
@@ -936,8 +991,9 @@ function updateChampionshipPanel() {
   if (!championshipActive) { panel.style.display = 'none'; return; }
   const track = TRACKS[currentTrack];
   const r = track.rounds[roundIndex];
+  const heartsRow = '❤️'.repeat(Math.max(lives, 0)) + '🖤'.repeat(Math.max(STARTING_LIVES - lives, 0));
   panel.style.display = 'block';
-  panel.textContent = `${track.label} ${track.trophy} · Fase ${roundIndex + 1}/${track.rounds.length} · Adversário: ${r.name} · Vitória com ${r.target} pontos`;
+  panel.textContent = `${track.label} ${track.trophy} · Fase ${roundIndex + 1}/${track.rounds.length} · Adversário: ${r.name} · Vitória com ${r.target} pontos · Vidas: ${heartsRow}`;
 }
 
 function showOverlay(title, msg, actions) {
@@ -966,6 +1022,37 @@ function showVictoryOverlay(title, msg, actions) {
 function hideOverlay() {
   document.getElementById('overlay').style.display = 'none';
   stopFireworks();
+}
+
+// --- Simulação de anúncio de vídeo com recompensa ---
+// Isto é só uma simulação (contagem regressiva sem opção de pular), pra testar
+// o fluxo do jogo. Pra rodar um anúncio de verdade, é preciso integrar um SDK
+// de anúncios (ex: Google AdMob) num app publicado — veja o README do projeto
+// Capacitor pra saber como conectar isso de verdade.
+function showAdOverlay(onComplete) {
+  let remaining = 6;
+  document.getElementById('overlayTrophy').style.display = 'none';
+  stopFireworks();
+  document.getElementById('overlayTitle').textContent = '📺 Anúncio (simulado)';
+  document.getElementById('overlayMsg').textContent = `Assista até o fim pra ganhar +1 vida... ${remaining}s`;
+  const actionsEl = document.getElementById('overlayActions');
+  actionsEl.innerHTML = '';
+  document.getElementById('overlay').style.display = 'flex';
+
+  const interval = setInterval(() => {
+    remaining--;
+    if (remaining > 0) {
+      document.getElementById('overlayMsg').textContent = `Assista até o fim pra ganhar +1 vida... ${remaining}s`;
+    } else {
+      clearInterval(interval);
+      document.getElementById('overlayMsg').textContent = 'Vídeo concluído! Vida extra liberada.';
+      const btn = document.createElement('button');
+      btn.className = 'overlay-btn';
+      btn.textContent = 'Continuar';
+      btn.onclick = () => { hideOverlay(); onComplete(); };
+      actionsEl.appendChild(btn);
+    }
+  }, 1000);
 }
 
 // --- Fogos de artifício: partículas simples desenhadas em canvas ---
@@ -1077,10 +1164,29 @@ function checkChampionshipEnd() {
     running = false;
     document.getElementById('startBtn').textContent = 'Iniciar';
     playRoundLose();
-    showOverlay('Você perdeu essa fase', `O ${r.name} venceu por ${p2.score} a ${p1.score}. Quer tentar de novo?`, [
-      { label: 'Tentar de novo', action: () => { loadRound(); running = true; document.getElementById('startBtn').textContent = 'Pausar'; loop(); } },
-      { label: 'Sair do campeonato', action: () => endChampionship() },
-    ]);
+    lives--;
+    updateChampionshipPanel();
+    if (lives > 0) {
+      showOverlay('Você perdeu essa fase', `O ${r.name} venceu por ${p2.score} a ${p1.score}. Vidas restantes: ${lives}. Quer tentar de novo?`, [
+        { label: 'Tentar de novo', action: () => { loadRound(); running = true; document.getElementById('startBtn').textContent = 'Pausar'; loop(); } },
+        { label: 'Sair do campeonato', action: () => endChampionship() },
+      ]);
+    } else {
+      showOverlay('Suas vidas acabaram!', `O ${r.name} venceu por ${p2.score} a ${p1.score}, e você usou todas as vidas. Assista um vídeo pra ganhar +1 vida e continuar de onde parou.`, [
+        {
+          label: '📺 Assistir vídeo (+1 vida)',
+          action: () => showAdOverlay(() => {
+            lives = 1;
+            updateChampionshipPanel();
+            loadRound();
+            running = true;
+            document.getElementById('startBtn').textContent = 'Pausar';
+            loop();
+          }),
+        },
+        { label: 'Sair do campeonato', action: () => endChampionship() },
+      ]);
+    }
   }
 }
 
@@ -1096,13 +1202,49 @@ function resetRound() {
 
 let practiceTarget = 5; // meta de pontos no modo livre; 0 = sem limite
 
-document.querySelectorAll('.target-btn').forEach(btn => {
+// --- Cronômetro da partida ---
+let matchSeconds = 0;
+
+function shouldShowTimer() {
+  return championshipActive || practiceTarget !== 0;
+}
+
+function formatTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+  const s = (totalSeconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent = `⏱ ${formatTime(matchSeconds)}`;
+}
+
+function updateTimerVisibility() {
+  document.getElementById('timerDisplay').style.display = shouldShowTimer() ? 'inline' : 'none';
+}
+
+function resetMatchTimer() {
+  matchSeconds = 0;
+  updateTimerDisplay();
+  updateTimerVisibility();
+}
+
+setInterval(() => {
+  if (running && shouldShowTimer()) {
+    matchSeconds++;
+    updateTimerDisplay();
+  }
+}, 1000);
+
+document.querySelectorAll('#targetRow .target-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.target-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#targetRow .target-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     practiceTarget = parseInt(btn.dataset.target, 10);
     p1.score = 0; p2.score = 0;
     updateScore();
+    updateTimerVisibility();
+    resetMatchTimer();
   });
 });
 
@@ -1344,6 +1486,7 @@ function loop() {
 }
 
 draw();
+resetMatchTimer();
 </script>
 
 </body>
