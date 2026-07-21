@@ -1,0 +1,36 @@
+{
+  "id": "com.wanderpomares.telegamevintage",
+  "name": "Tele Game Vintage",
+  "short_name": "Tele Game",
+  "description": "Vídeo game estilo 1977, inspirado nos clássicos da época",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "any",
+  "background_color": "#201812",
+  "theme_color": "#1a1a1a",
+  "categories": ["games", "sports", "entertainment"],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Campeonato",
+      "short_name": "Campeonato",
+      "description": "Ir direto pro Campeonato",
+      "url": ".?atalho=campeonato"
+    },
+    {
+      "name": "Praticar",
+      "short_name": "Praticar",
+      "description": "Jogar uma partida livre",
+      "url": ".?atalho=praticar"
+    }
+  ]
+}

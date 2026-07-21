@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Tele Game Vintage — 1977</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a1a">
+
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tele Game Vintage">
+
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="splash-screen" id="splashScreen">
+  <div class="splash-title">TELE GAME<br>VINTAGE</div>
+  <div class="splash-sub">MODELO · 1977</div>
+</div>
+
+<div class="achievement-toast" id="achievementToast">
+  <span class="achievement-toast-icon" id="achievementToastIcon">🏆</span>
+  <div>
+    <div class="achievement-toast-title">Conquista desbloqueada!</div>
+    <div class="achievement-toast-name" id="achievementToastName"></div>
+  </div>
+</div>
+
+<div class="console">
+  <div class="screw screw-tl"></div>
+  <div class="screw screw-tr"></div>
+  <div class="screw screw-bl"></div>
+  <div class="screw screw-br"></div>
+
+  <div class="wood-strip">
+    <div class="brand-row">
+      <span class="power-led" title="Ligado"></span>
+      <div class="brand">TELE GAME VINTAGE</div>
+    </div>
+    <div class="brand-sub">MODELO · 1977</div>
+  </div>
+
+  <div class="console-body" id="consoleBody">
+
+    <div class="main-menu" id="mainMenuOverlay">
+      <div class="menu-watermark">77</div>
+      <div class="menu-profile-login" id="menuProfileLogin">
+        <input type="text" id="menuPlayerNameInput" placeholder="Seu nome de jogador" maxlength="20">
+        <button class="champ-btn" id="menuLoginBtn">Entrar</button>
+      </div>
+      <div class="menu-profile-info" id="menuProfileInfo" style="display:none;">
+        <span class="profile-name" id="menuProfileName"></span>
+        <span class="trophy-case" id="menuTrophyCase"></span>
+      </div>
+      <div class="menu-login-hint" id="menuLoginHint">Digite seu nome acima pra entrar</div>
+      <div class="main-menu-buttons" id="mainMenuButtons" style="display:none;">
+        <button class="menu-btn" data-menu-action="jogar">▶ Jogar</button>
+        <button class="menu-btn" data-menu-action="campeonato">🏆 Campeonato</button>
+        <button class="menu-btn" data-menu-action="estatisticas">📊 Estatísticas</button>
+        <button class="menu-btn" data-menu-action="conquistas">🎖️ Conquistas</button>
+        <button class="menu-btn" data-menu-action="ranking">📈 Ranking</button>
+        <button class="menu-btn" data-menu-action="loja">🛒 Loja</button>
+        <button class="menu-btn" data-menu-action="configuracoes">⚙️ Configurações</button>
+        <button class="menu-btn" data-menu-action="ajuda">❓ Como Jogar</button>
+        <button class="menu-btn" data-menu-action="creditos">ℹ️ Créditos</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+      <canvas class="fireworks-canvas" id="fireworksCanvas"></canvas>
+      <div class="overlay-box">
+        <div class="overlay-trophy" id="overlayTrophy" style="display:none;">🏆</div>
+        <div class="overlay-title" id="overlayTitle"></div>
+        <div class="overlay-msg" id="overlayMsg"></div>
+        <div class="overlay-actions" id="overlayActions"></div>
+      </div>
+    </div>
+
+    <div class="screen-frame scanline-overlay">
+      <canvas id="game" width="400" height="300"></canvas>
+      <div class="screen-glass"></div>
+    </div>
+
+    <div class="touch-controls">
+      <div class="quick-start-row">
+        <div class="score-panel" id="score">00 : 00</div>
+        <span class="timer-panel" id="timerDisplay" style="display:none;">⏱ 00:00</span>
+        <button class="start-btn" id="menuBtn" style="background:linear-gradient(180deg,#555,#2a2a2a);border-color:#444;">☰</button>
+        <button class="start-btn" id="soundBtn" style="background:linear-gradient(180deg,#555,#2a2a2a);border-color:#444;">🔊</button>
+        <button class="start-btn" id="startBtn">Iniciar</button>
+      </div>
+      <div class="pad-group">
+        <button class="pad-btn" id="p1up">▲</button>
+        <button class="pad-btn" id="p1down">▼</button>
+      </div>
+    </div>
+
+    <div class="profile-row" id="profileRow">
+      <div class="profile-login" id="profileLogin" style="display:none;">
+        <input type="text" id="playerNameInput" placeholder="Seu nome de jogador" maxlength="20">
+        <button class="champ-btn" id="loginBtn">Entrar</button>
+      </div>
+      <div class="profile-info" id="profileInfo" style="display:none;">
+        <span class="profile-name" id="profileName"></span>
+        <span class="trophy-case" id="trophyCase"></span>
+        <span class="coin-display" id="coinDisplay"></span>
+        <button class="champ-btn practice-btn" id="statsBtn">📊 Estatísticas</button>
+        <button class="champ-btn practice-btn" id="achievementsBtn">🏆 Conquistas</button>
+        <button class="champ-btn practice-btn" id="logoutBtn">Trocar jogador</button>
+      </div>
+    </div>
+
+    <div class="gameplay-controls" id="gamePlayControls" style="display:none;">
+      <div class="champ-row">
+        <button class="champ-btn practice-btn" id="practiceBtn">Praticar</button>
+        <button class="champ-btn" id="champBtn">Campeonato</button>
+        <button class="champ-btn practice-btn" id="specialModesBtn">🎮 Modos Especiais</button>
+      </div>
+      <div class="champ-panel" id="champPanel"></div>
+      <div class="champ-panel" id="specialModePanel" style="display:none;"></div>
+
+      <div class="target-row" id="difficultyRow">
+        <span class="target-label">Dificuldade do campeonato:</span>
+        <button class="target-btn" data-difficulty="facil">Fácil</button>
+        <button class="target-btn active" data-difficulty="medio">Médio</button>
+        <button class="target-btn" data-difficulty="dificil">Difícil</button>
+      </div>
+
+      <div class="target-row" id="practiceDifficultyRow">
+        <span class="target-label">Dificuldade da CPU:</span>
+        <button class="target-btn" data-practice-difficulty="facil">Fácil</button>
+        <button class="target-btn active" data-practice-difficulty="medio">Médio</button>
+        <button class="target-btn" data-practice-difficulty="dificil">Difícil</button>
+      </div>
+
+      <div class="target-row" id="targetRow">
+        <span class="target-label">Jogar até:</span>
+        <button class="target-btn" data-target="3">3</button>
+        <button class="target-btn active" data-target="5">5</button>
+        <button class="target-btn" data-target="7">7</button>
+        <button class="target-btn" data-target="10">10</button>
+        <button class="target-btn" data-target="0">Livre</button>
+      </div>
+
+      <div class="controls-row">
+        <div class="game-select">
+          <button class="dial-btn active" data-mode="paredao">Paredão<span class="mini-trophy" data-trophy="paredao">🧱</span></button>
+          <button class="dial-btn" data-mode="tenis">Tênis<span class="mini-trophy" data-trophy="tenis">🎾</span></button>
+          <button class="dial-btn" data-mode="futebol">Futebol<span class="mini-trophy" data-trophy="futebol">⚽</span></button>
+          <button class="dial-btn" data-mode="barreira">Barreira<span class="mini-trophy" data-trophy="barreira">🚧</span></button>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <b>Mover:</b> W / S ou ↑ / ↓ &nbsp;&nbsp; <b>Iniciar/Pausar:</b> barra de espaço &nbsp;&nbsp;
+        (o adversário é sempre a CPU) — <b>Paredão:</b> rebata contra a parede.
+        <b>Tênis / Futebol:</b> dispute pontos contra o adversário.
+        <b>Barreira:</b> passe a bola pela abertura móvel no meio da quadra.
+        <b>Campeonato:</b> um por jogo, 4 fases cada, dificuldade crescente. Entre com seu nome pra guardar os troféus.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer-label">INSPIRADO NOS CLÁSSICOS DE 1977 · CRIADO POR WANDER POMARES</div>
+</div>
+
+<script src="storage.js"></script>
+<script src="audio.js"></script>
+<script src="ads.js"></script>
+<script src="playservices.js"></script>
+<script src="coins.js"></script>
+<script src="shop.js"></script>
+<script src="stats.js"></script>
+<script src="achievements.js"></script>
+<script src="ranking.js"></script>
+<script src="levels.js"></script>
+<script src="missions.js"></script>
+<script src="script.js"></script>
+
+<script>
+  // Registro do Service Worker (Etapa 13 — modo offline). Se falhar por
+  // qualquer motivo (arquivo único local, navegador sem suporte completo, etc.),
+  // o jogo continua funcionando normalmente, só sem cache offline.
+  try {
+    if ('serviceWorker' in navigator && navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {
+          // Sem problema: modo offline não disponível nesta forma de abrir o jogo.
+        });
+      });
+    }
+  } catch (e) {
+    // Qualquer navegador/ambiente incomum: ignora e segue o jogo normalmente.
+  }
+</script>
+
+</body>
+</html>
