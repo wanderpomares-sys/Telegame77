@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.wanderpomares_sys.twa",
+        "sha256_cert_fingerprints": ["0F:EF:E5:B9:87:06:68:0C:ED:B3:2B:A9:13:A6:20:8E:70:C3:C8:D0:F7:AB:71:93:44:2B:35:47:6D:04:20:93"]
+      }
+    }]
