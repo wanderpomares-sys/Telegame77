@@ -45,6 +45,9 @@ function startLoop() {
   running = true;
   lastFrameTime = 0;
   document.getElementById('startBtn').textContent = 'Pausar';
+  if (p1.score === 0 && p2.score === 0) {
+    GameAnalytics.track('game_start', { mode, championship: championshipActive });
+  }
   requestAnimationFrame(loop);
 }
 
@@ -130,6 +133,11 @@ document.querySelectorAll('#practiceDifficultyRow .target-btn').forEach(btn => {
     btn.classList.add('active');
     practiceDifficulty = btn.dataset.practiceDifficulty;
     applyPracticeDifficulty();
+    p1.score = 0;
+    p2.score = 0;
+    resetRound();
+    resetMatchTimer();
+    draw();
   });
 });
 
@@ -210,12 +218,14 @@ window.addEventListener('keyup', e => keys[e.key] = false);
 
 // --- Controles por toque: usamos Pointer Events (unifica mouse/toque/caneta e
 // já suporta multitoque de forma nativa, cada ponteiro com seu próprio ID) ---
+const touchPressStartedAt = {}; // keyName -> timestamp de quando começou a segurar
 function bindHoldPointer(el, keyName) {
   const press = e => {
     e.preventDefault();
     ensureAudio();
     try { el.setPointerCapture(e.pointerId); } catch (err) { /* alguns navegadores antigos não suportam */ }
     keys[keyName] = true;
+    touchPressStartedAt[keyName] = performance.now();
   };
   const release = e => {
     e.preventDefault();
@@ -272,7 +282,10 @@ document.querySelectorAll('.dial-btn').forEach(btn => {
     document.querySelectorAll('.dial-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     mode = btn.dataset.mode;
+    p1.score = 0;
+    p2.score = 0;
     resetRound();
+    resetMatchTimer();
     draw();
   });
 });
@@ -366,6 +379,7 @@ async function login(rawName) {
   await GameShop.load(playerName);
   await GameLevels.load(playerName);
   await GameMissions.load(playerName);
+  await GameRecords.load(playerName);
   applyCosmetics(GameShop.getEquippedConfig());
   await GamePlayServices.signIn(); // sem efeito hoje (ver playservices.js) — pronto pra quando existir de verdade
   updateProfileUI();
@@ -554,6 +568,27 @@ function showVictoryOverlay(title, msg, actions) {
   startFireworks();
 }
 
+/**
+ * Compartilha um resultado (recorde, etc). Usa a Web Share API quando
+ * disponível (abre o menu nativo de compartilhar do celular); se não tiver
+ * suporte, copia o texto pra área de transferência como alternativa.
+ * Nunca compartilha sozinho — só quando o jogador toca no botão.
+ */
+async function shareResult(text) {
+  GameAnalytics.track('share_clicked', {});
+  try {
+    if (navigator.share) {
+      await navigator.share({ text, title: 'Tele Game Vintage' });
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text);
+      showAchievementToast({ icon: '📋', name: 'Texto copiado! Cole onde quiser compartilhar.', coins: 0 });
+    }
+  } catch (e) {
+    // Usuário cancelou o compartilhamento nativo, ou o navegador bloqueou —
+    // não é um erro real, só não faz nada.
+  }
+}
+
 function hideOverlay() {
   document.getElementById('overlay').style.display = 'none';
   stopFireworks();
@@ -593,6 +628,7 @@ async function checkAchievements() {
       updateCoinDisplay();
     }
     showAchievementToast(def);
+    GameAnalytics.track('achievement_unlocked', { id: def.id });
   });
 }
 
@@ -627,6 +663,7 @@ function showStatsOverlay(returnToMenu) {
   const lvl = GameLevels.getInfo();
   const xpPct = Math.round((lvl.xpIntoLevel / lvl.xpForNextLevel) * 100);
   const missions = GameMissions.getProgressView();
+  const records = GameRecords.getSummary();
 
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
@@ -636,12 +673,17 @@ function showStatsOverlay(returnToMenu) {
       <div class="level-label">Nível <b>${lvl.level}</b> — ${lvl.xpIntoLevel}/${lvl.xpForNextLevel} XP</div>
       <div class="level-bar"><div class="level-bar-fill" style="width:${xpPct}%;"></div></div>
     </div>
+    <div class="missions-title">🏆 Meus Recordes</div>
     <div class="stats-grid">
-      <div>Partidas jogadas: <b>${s.matchesPlayed}</b></div>
+      <div>Melhor pontuação: <b>${records.bestScore}</b></div>
+      <div>Melhor tempo no Paredão: <b>${formatTime(records.paredaoBestSeconds)}</b></div>
+      <div>Partidas jogadas: <b>${records.matchesPlayed}</b></div>
+      <div>Maior sequência: <b>${records.bestWinStreak}</b></div>
+    </div>
+    <div class="stats-grid">
       <div>Aproveitamento: <b>${s.winRate}%</b></div>
       <div>Vitórias: <b>${s.wins}</b></div>
       <div>Derrotas: <b>${s.losses}</b></div>
-      <div>Maior sequência: <b>${s.bestWinStreak}</b></div>
       <div>Tempo jogado: <b>${s.playtimeLabel}</b></div>
       <div>Pontos marcados: <b>${s.pointsFor}</b></div>
       <div>Pontos sofridos: <b>${s.pointsAgainst}</b></div>
@@ -845,6 +887,10 @@ async function showShopOverlay(category) {
       <button class="overlay-btn shop-action" id="watchAdCoinsBtn" ${adLimitReached ? 'disabled' : ''}>
         ${adLimitReached ? `Volte amanhã` : `Assistir (${adsWatchedToday}/${AD_WATCH_DAILY_LIMIT} hoje)`}
       </button>
+    </div>
+    <div class="shop-ad-row">
+      <span>🚫 Remover Anúncios · jogue sem anúncios e apoie o projeto</span>
+      <button class="overlay-btn shop-action" id="removeAdsBtn">Em breve</button>
     </div>`;
 
   document.getElementById('overlayMsg').innerHTML = `
@@ -852,6 +898,18 @@ async function showShopOverlay(category) {
     <div class="shop-tabs">${tabsHtml}</div>
     <div class="shop-items">${itemsHtml}</div>
   `;
+
+  const removeAdsBtn = document.getElementById('removeAdsBtn');
+  if (removeAdsBtn) {
+    removeAdsBtn.addEventListener('click', () => {
+      // Compra real depende do Google Play Billing, ainda não conectado
+      // (CONFIGURAÇÃO EXTERNA NECESSÁRIA) — por isso não simula uma compra,
+      // só avisa que essa opção ainda está a caminho.
+      ensureAudio();
+      GameAudio.playToggleOff();
+      showAchievementToast({ icon: '🚫', name: 'Em breve! Ainda estamos preparando essa opção.', coins: 0 });
+    });
+  }
 
   const watchAdBtn = document.getElementById('watchAdCoinsBtn');
   if (watchAdBtn && !adLimitReached) {
@@ -904,34 +962,54 @@ async function showShopOverlay(category) {
 }
 
 function renderSettingsBody() {
+  const t = GameI18n.t;
   const enabled = GameAudio.isSoundEnabled();
   const musicOn = GameAudio.isMusicEnabled();
+  const labels = { pt: '🇧🇷 Português', en: '🇺🇸 English', es: '🇪🇸 Español' };
   return `
     <div class="settings-body">
-      <div>Som: <b>${enabled ? 'Ligado 🔊' : 'Desligado 🔇'}</b></div>
-      <div>Música de fundo: <b>${musicOn ? 'Ligada 🎵' : 'Desligada'}</b></div>
-      <div>Jogador atual: <b>${playerName || 'Nenhum — entre com um nome no jogo'}</b></div>
+      <div>${enabled ? t('settings.somLigado') : t('settings.somDesligado')}</div>
+      <div>${musicOn ? t('settings.musicaLigada') : t('settings.musicaDesligada')}</div>
+      <div>${t('settings.jogadorAtual')}: <b>${playerName || t('settings.nenhum')}</b></div>
+      <div style="margin-top:10px;">${t('settings.idioma')}:</div>
+      <div class="target-row" id="langRow" style="margin-top:6px;">
+        ${GameI18n.availableLanguages().map((lang) => {
+          const active = lang === GameI18n.getLang();
+          return `<button class="target-btn${active ? ' active' : ''}" data-lang="${lang}">${labels[lang] || lang}</button>`;
+        }).join('')}
+      </div>
     </div>`;
 }
 
 function showSettingsOverlay() {
+  const t = GameI18n.t;
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
-  document.getElementById('overlayTitle').textContent = '⚙️ Configurações';
+  document.getElementById('overlayTitle').textContent = t('settings.title');
   document.getElementById('overlayMsg').innerHTML = renderSettingsBody();
+
+  document.querySelectorAll('#langRow [data-lang]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      ensureAudio();
+      GameAudio.playMenuNavigate();
+      await GameI18n.setLang(btn.dataset.lang);
+      applyTranslations();
+      showSettingsOverlay(); // redesenha essa própria tela já traduzida
+    });
+  });
 
   const actionsEl = document.getElementById('overlayActions');
   actionsEl.innerHTML = '';
 
   const soundBtnEl = document.createElement('button');
   soundBtnEl.className = 'overlay-btn';
-  soundBtnEl.textContent = GameAudio.isSoundEnabled() ? 'Desligar som' : 'Ligar som';
+  soundBtnEl.textContent = GameAudio.isSoundEnabled() ? t('settings.desligarSom') : t('settings.ligarSom');
   soundBtnEl.onclick = () => { document.getElementById('soundBtn').click(); showSettingsOverlay(); };
   actionsEl.appendChild(soundBtnEl);
 
   const musicBtnEl = document.createElement('button');
   musicBtnEl.className = 'overlay-btn secondary';
-  musicBtnEl.textContent = GameAudio.isMusicEnabled() ? 'Desligar música' : 'Ligar música';
+  musicBtnEl.textContent = GameAudio.isMusicEnabled() ? t('settings.desligarMusica') : t('settings.ligarMusica');
   musicBtnEl.onclick = () => { ensureAudio(); GameAudio.toggleMusic(); showSettingsOverlay(); };
   actionsEl.appendChild(musicBtnEl);
 
@@ -949,14 +1027,14 @@ function showSettingsOverlay() {
 
     const logoutBtnEl = document.createElement('button');
     logoutBtnEl.className = 'overlay-btn secondary';
-    logoutBtnEl.textContent = 'Trocar jogador';
+    logoutBtnEl.textContent = t('menu.trocarJogador');
     logoutBtnEl.onclick = () => { hideOverlay(); logout(); showMainMenu(); };
     actionsEl.appendChild(logoutBtnEl);
   }
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'overlay-btn secondary';
-  closeBtn.textContent = 'Voltar ao Menu';
+  closeBtn.textContent = t('common.voltarMenu');
   closeBtn.onclick = () => { hideOverlay(); showMainMenu(); };
   actionsEl.appendChild(closeBtn);
 
@@ -965,7 +1043,7 @@ function showSettingsOverlay() {
 
 /** Manual do jogo: controles, modos, campeonato e os sistemas (moedas/XP/loja/etc). */
 function showHelpOverlay() {
-  showOverlay('❓ Como Jogar', '', [{ label: 'Voltar ao Menu', action: () => showMainMenu() }]);
+  showOverlay(GameI18n.t('help.title'), '', [{ label: GameI18n.t('common.voltarMenu'), action: () => showMainMenu() }]);
   document.getElementById('overlayMsg').innerHTML = `
     <div class="help-body">
       <div class="help-section">
@@ -1015,13 +1093,14 @@ function showHelpOverlay() {
 }
 
 function showCreditsOverlay() {
-  showOverlay('ℹ️ Créditos', '', [{ label: 'Voltar ao Menu', action: () => showMainMenu() }]);
+  const t = GameI18n.t;
+  showOverlay(t('credits.title'), '', [{ label: t('common.voltarMenu'), action: () => showMainMenu() }]);
   document.getElementById('overlayMsg').innerHTML = `
     <div class="credits-body">
       <div><b>Tele Game Vintage</b></div>
-      <div>Inspirado nos clássicos de vídeo game de 1977.</div>
-      <div>Criado por <b>Wander Pomares</b>.</div>
-      <div>Feito com HTML5 Canvas, CSS e JavaScript puro.</div>
+      <div>${t('credits.body')}</div>
+      <div>${t('credits.criadoPor')} <b>Wander Pomares</b>.</div>
+      <div>${t('credits.feitoCom')}</div>
     </div>`;
 }
 
@@ -1059,6 +1138,7 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
         showRankingOverlay(false);
         break;
       case 'loja':
+        GameAnalytics.track('shop_opened', {});
         requireLoginFromMenu(() => showShopOverlay());
         break;
       case 'configuracoes':
@@ -1068,6 +1148,7 @@ document.querySelectorAll('.menu-btn').forEach(btn => {
         showHelpOverlay();
         break;
       case 'creditos':
+        GameAnalytics.track('about_opened', {});
         showCreditsOverlay();
         break;
     }
@@ -1091,6 +1172,7 @@ document.getElementById('achievementsBtn').addEventListener('click', () => showA
 function showAdOverlay(onComplete, rewardLabel) {
   const label = rewardLabel || 'ganhar +1 vida';
   let remaining = 6;
+  GameAnalytics.track('rewarded_ad_started', { reward: label });
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
   document.getElementById('overlayTitle').textContent = '📺 Anúncio (simulado)';
@@ -1106,6 +1188,7 @@ function showAdOverlay(onComplete, rewardLabel) {
     } else {
       clearInterval(interval);
       document.getElementById('overlayMsg').textContent = 'Vídeo concluído! Recompensa liberada.';
+      GameAnalytics.track('rewarded_ad_completed', { reward: label });
       const btn = document.createElement('button');
       btn.className = 'overlay-btn';
       btn.textContent = 'Continuar';
@@ -1734,9 +1817,15 @@ function checkPracticeEnd() {
     checkAndAwardMissions();
     checkAchievements();
     handleSpecialModeWin();
-    showVictoryOverlay('Você venceu! 🏆', `Jogador 1 venceu por ${p1.score} a ${p2.score}.`, [
-      { label: 'Jogar de novo', action: () => { p1.score = 0; p2.score = 0; resetRound(); draw(); } },
-    ]);
+    GameAnalytics.track('game_complete', { mode, result: 'win', score: p1.score, seconds: matchSeconds });
+
+    if (mode === 'paredao' && playerName) {
+      showParedaoResultOverlay(true);
+    } else {
+      showVictoryOverlay('Você venceu! 🏆', `Jogador 1 venceu por ${p1.score} a ${p2.score}.`, [
+        { label: 'Jogar de novo', action: () => { p1.score = 0; p2.score = 0; resetRound(); resetMatchTimer(); draw(); } },
+      ]);
+    }
   } else if (p2.score >= practiceTarget) {
     pauseLoop();
     playRoundLose();
@@ -1744,10 +1833,57 @@ function checkPracticeEnd() {
     if (playerName) GameMissions.recordMatchResult(false, mode, false);
     checkAndAwardMissions();
     checkAchievements();
-    showOverlay('Fim de jogo', `A CPU venceu por ${p2.score} a ${p1.score}.`, [
-      { label: 'Jogar de novo', action: () => { p1.score = 0; p2.score = 0; resetRound(); draw(); } },
-    ]);
+    GameAnalytics.track('game_complete', { mode, result: 'loss', score: p1.score, seconds: matchSeconds });
+
+    if (mode === 'paredao' && playerName) {
+      showParedaoResultOverlay(false);
+    } else {
+      showOverlay('Fim de jogo', `A CPU venceu por ${p2.score} a ${p1.score}.`, [
+        { label: 'Jogar de novo', action: () => { p1.score = 0; p2.score = 0; resetRound(); resetMatchTimer(); draw(); } },
+      ]);
+    }
   }
+}
+
+/**
+ * Tela de resultado do Paredão, com comparação de recorde (Prioridade 2 do
+ * plano de evolução). Funciona tanto pra vitória (sobreviveu o tempo todo)
+ * quanto derrota (errou antes) — em qualquer um dos dois casos, "quanto
+ * tempo você aguentou" é o número que importa pra bater o recorde.
+ */
+async function showParedaoResultOverlay(won) {
+  const secondsSurvived = matchSeconds;
+  const previousBest = GameRecords.getParedaoBestSeconds();
+  const isNewRecord = await GameRecords.recordParedaoSurvival(secondsSurvived);
+  if (isNewRecord) GameAnalytics.track('new_record', { mode: 'paredao', seconds: secondsSurvived });
+
+  let title, msg;
+  if (isNewRecord) {
+    title = won ? '🏆 Você venceu — NOVO RECORDE!' : '⭐ NOVO RECORDE!';
+    msg = won
+      ? `Sobreviveu os ${formatTime(secondsSurvived)} inteiros! Recorde anterior: ${formatTime(previousBest)}.`
+      : `Aguentou ${formatTime(secondsSurvived)} antes de errar — superou seu recorde anterior de ${formatTime(previousBest)}!`;
+  } else if (won) {
+    title = 'Você venceu! 🏆';
+    msg = `Sobreviveu os ${formatTime(secondsSurvived)} inteiros. Seu recorde continua sendo ${formatTime(previousBest)}.`;
+  } else {
+    title = 'QUASE!';
+    const falta = Math.max(0, previousBest - secondsSurvived);
+    msg = `Aguentou ${formatTime(secondsSurvived)} antes de errar. Faltaram ${formatTime(falta)} pra bater seu recorde de ${formatTime(previousBest)}.`;
+  }
+
+  const actions = [
+    { label: 'Jogar de novo', action: () => { p1.score = 0; p2.score = 0; resetRound(); resetMatchTimer(); draw(); } },
+  ];
+  if (typeof navigator !== 'undefined' && (navigator.share || navigator.clipboard)) {
+    actions.push({
+      label: 'Compartilhar',
+      action: () => shareResult(`Aguentei ${formatTime(secondsSurvived)} no Paredão do Tele Game Vintage! Meu recorde é ${formatTime(Math.max(secondsSurvived, previousBest))}. Você consegue superar?`),
+    });
+  }
+
+  if (won) showVictoryOverlay(title, msg, actions);
+  else showOverlay(title, msg, actions);
 }
 
 function updateScore() {
@@ -1979,6 +2115,18 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
+const TOUCH_SPEED_MIN = 1.7;  // velocidade logo no início do toque (ajuste fino num toque rápido)
+const TOUCH_SPEED_MAX = 4.6;  // velocidade depois de segurar (movimento rápido, igual antes)
+const TOUCH_RAMP_MS = 220;    // tempo até atingir a velocidade máxima
+
+/** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
+function touchSpeedFor(keyName) {
+  const startedAt = touchPressStartedAt[keyName] || 0;
+  const held = performance.now() - startedAt;
+  const t = Math.min(1, Math.max(0, held / TOUCH_RAMP_MS));
+  return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t;
+}
+
 /** Move a raquete do jogador conforme teclado e botões de toque. */
 function movePlayer(dtFactor) {
   // O arraste na tela já define p1.y diretamente (posição 1:1 com o dedo),
@@ -1989,13 +2137,12 @@ function movePlayer(dtFactor) {
   }
 
   const kbSpeed = 6;
-  const touchSpeed = 4.6;
 
   let delta = 0;
   if (keys['w'] || keys['W'] || keys['ArrowUp']) delta -= kbSpeed;
   if (keys['s'] || keys['S'] || keys['ArrowDown']) delta += kbSpeed;
-  if (keys['touchP1Up']) delta -= touchSpeed;
-  if (keys['touchP1Down']) delta += touchSpeed;
+  if (keys['touchP1Up']) delta -= touchSpeedFor('touchP1Up');
+  if (keys['touchP1Down']) delta += touchSpeedFor('touchP1Down');
 
   p1.y = clamp(p1.y + delta * dtFactor, 0, H - paddleH);
 }
@@ -2510,11 +2657,41 @@ window.addEventListener('pageshow', () => {
   if (toast) toast.classList.remove('show');
 });
 
+/**
+ * Aplica o idioma atual (GameI18n) em todos os textos estáticos da tela —
+ * roda uma vez no carregamento e de novo toda vez que o idioma muda. Textos
+ * gerados dinamicamente (dentro de showXOverlay(), por exemplo) já pegam o
+ * idioma certo sozinhos na próxima vez que a tela for aberta, sem precisar
+ * de nada aqui.
+ */
+function applyTranslations() {
+  const t = GameI18n.t;
+
+  // Botões do menu principal (usa o data-menu-action como parte da chave)
+  document.querySelectorAll('[data-menu-action]').forEach((btn) => {
+    const key = 'menu.' + btn.dataset.menuAction;
+    const translated = t(key);
+    if (translated !== key) btn.textContent = translated;
+  });
+
+  // Login (tanto o campo dentro do menu quanto o de dentro do jogo)
+  document.getElementById('menuLoginHint').textContent = t('menu.loginHint');
+  document.getElementById('menuPlayerNameInput').placeholder = t('menu.namePlaceholder');
+  document.getElementById('menuLoginBtn').textContent = t('menu.entrar');
+  document.getElementById('playerNameInput').placeholder = t('menu.namePlaceholder');
+  document.getElementById('loginBtn').textContent = t('menu.entrar');
+  document.getElementById('logoutBtn').textContent = t('menu.trocarJogador');
+}
+
 applyPracticeDifficulty();
 resetRound();
 draw();
 resetMatchTimer();
 GameRanking.load(); // ranking é global (não depende de login pra ser exibido)
+
+// Idioma: carrega a preferência salva (ou português, se for a primeira vez)
+// e já aplica em toda a tela antes do jogador ver qualquer coisa.
+GameI18n.load().then(() => applyTranslations());
 
 // Esconde a splash screen assim que o jogo estiver pronto pra usar.
 // Um pequeno atraso mínimo evita um "pisca" caso tudo carregue rápido demais.
