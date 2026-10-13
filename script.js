@@ -226,6 +226,9 @@ function bindHoldPointer(el, keyName) {
     try { el.setPointerCapture(e.pointerId); } catch (err) { /* alguns navegadores antigos não suportam */ }
     keys[keyName] = true;
     touchPressStartedAt[keyName] = performance.now();
+    // Toque = passo fixo e imediato (previsível, bom pra ajuste fino).
+    const dir = keyName === 'touchP1Up' ? -1 : 1;
+    p1.y = clamp(p1.y + dir * TOUCH_TAP_STEP, 0, H - paddleH);
   };
   const release = e => {
     e.preventDefault();
@@ -2115,15 +2118,18 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-const TOUCH_SPEED_MIN = 1.7;  // velocidade logo no início do toque (ajuste fino num toque rápido)
-const TOUCH_SPEED_MAX = 4.6;  // velocidade depois de segurar (movimento rápido, igual antes)
-const TOUCH_RAMP_MS = 220;    // tempo até atingir a velocidade máxima
+var TOUCH_TAP_STEP = 7;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
+const TOUCH_HOLD_DELAY_MS = 70; // só começa a deslizar depois disso (toque curto não "foge")
+const TOUCH_SPEED_MIN = 2.5;  // velocidade ao começar a deslizar
+const TOUCH_SPEED_MAX = 9;    // velocidade segurando (acompanha a bola no teto de velocidade)
+const TOUCH_RAMP_MS = 160;    // tempo até atingir a velocidade máxima
 
 /** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
 function touchSpeedFor(keyName) {
   const startedAt = touchPressStartedAt[keyName] || 0;
   const held = performance.now() - startedAt;
-  const t = Math.min(1, Math.max(0, held / TOUCH_RAMP_MS));
+  if (held < TOUCH_HOLD_DELAY_MS) return 0;
+  const t = Math.min(1, Math.max(0, (held - TOUCH_HOLD_DELAY_MS) / TOUCH_RAMP_MS));
   return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t;
 }
 
