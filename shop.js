@@ -10,85 +10,76 @@
  * `GameShop.getEquippedConfig()` e aplicando os valores.
  */
 const GameShop = (function () {
+  // Categorias visíveis na loja. (Os itens antigos de madeira/console/fonte
+  // continuam no catálogo só para não perder compras já feitas.)
   const CATEGORIES = [
-    { id: 'wood', label: 'Madeira' },
-    { id: 'console', label: 'Console' },
-    { id: 'screen', label: 'Cor da Tela' },
-    { id: 'ball', label: 'Bola' },
-    { id: 'paddle', label: 'Raquete' },
-    { id: 'sound', label: 'Sons' },
+    { id: 'ball', label: 'Bolas' },
+    { id: 'paddle', label: 'Raquetes' },
+    { id: 'screen', label: 'Ambientes' },
+    { id: 'frame', label: 'Borda Neon' },
+    { id: 'arena', label: 'Pisos' },
     { id: 'effects', label: 'Efeitos' },
-    { id: 'frame', label: 'Moldura' },
-    { id: 'font', label: 'Fonte' },
-    { id: 'arena', label: 'Arena' },
+    { id: 'sound', label: 'Sons' },
   ];
 
   const ITEMS = [
-    // --- Madeira (faixa de madeira do console) ---
-    { id: 'wood_default', category: 'wood', name: 'Padrão', price: 0,
-      vars: { '--wood-dark': '#4a3324', '--wood-mid': '#6b4a30', '--wood-light': '#8a6440' } },
-    { id: 'wood_mahogany', category: 'wood', name: 'Mogno Escuro', price: 80,
-      vars: { '--wood-dark': '#2e1710', '--wood-mid': '#5c2e1c', '--wood-light': '#7a4228' } },
-    { id: 'wood_oak', category: 'wood', name: 'Carvalho Claro', price: 80,
-      vars: { '--wood-dark': '#8a6b3d', '--wood-mid': '#b6905a', '--wood-light': '#d9b87e' } },
-    { id: 'wood_ebony', category: 'wood', name: 'Ébano', price: 120,
-      vars: { '--wood-dark': '#0d0d0d', '--wood-mid': '#232323', '--wood-light': '#3a3a3a' } },
+    // --- Bolas ---
+    { id: 'ball_default', category: 'ball', name: 'Clássica', price: 0, color: '#c8e6c0' },
+    { id: 'ball_white', category: 'ball', name: 'Pérola', price: 80, color: '#f2f2f2' },
+    { id: 'ball_cyan', category: 'ball', name: 'Plasma Ciano', price: 200, color: '#3de8ff' },
+    { id: 'ball_pink', category: 'ball', name: 'Rosa Neon', price: 200, color: '#ff5fa3' },
+    { id: 'ball_lava', category: 'ball', name: 'Lava', price: 300, color: '#ff5a1f' },
+    { id: 'ball_lime', category: 'ball', name: 'Ácido', price: 300, color: '#b6ff2a' },
+    { id: 'ball_violet', category: 'ball', name: 'Galáxia', price: 400, color: '#a66bff' },
+    { id: 'ball_gold', category: 'ball', name: 'Ouro Maciço', price: 600, color: '#ffc61a' },
 
-    // --- Console (corpo do aparelho) ---
-    { id: 'console_default', category: 'console', name: 'Padrão', price: 0,
-      vars: { '--panel-black': '#1a1a1a' } },
-    { id: 'console_graphite', category: 'console', name: 'Grafite', price: 100,
-      vars: { '--panel-black': '#26282b' } },
-    { id: 'console_military', category: 'console', name: 'Verde Militar', price: 100,
-      vars: { '--panel-black': '#1c2418' } },
-    { id: 'console_wine', category: 'console', name: 'Vinho', price: 120,
-      vars: { '--panel-black': '#2a1418' } },
+    // --- Raquetes ---
+    { id: 'paddle_default', category: 'paddle', name: 'Clássica', price: 0, color: '#c8e6c0' },
+    { id: 'paddle_blue', category: 'paddle', name: 'Azul Elétrico', price: 100, color: '#4fc3ff' },
+    { id: 'paddle_red', category: 'paddle', name: 'Vermelho Turbo', price: 100, color: '#ff4d4d' },
+    { id: 'paddle_amber', category: 'paddle', name: 'Âmbar', price: 100, color: '#ffa726' },
+    { id: 'paddle_green', category: 'paddle', name: 'Verde Radioativo', price: 200, color: '#39ff7a' },
+    { id: 'paddle_purple', category: 'paddle', name: 'Ultravioleta', price: 250, color: '#9b6bff' },
+    { id: 'paddle_chrome', category: 'paddle', name: 'Cromada', price: 400, color: '#dfe7f2' },
+    { id: 'paddle_gold', category: 'paddle', name: 'Ouro Real', price: 600, color: '#ffc61a' },
 
-    // --- Cor da tela (fundo do "vidro") ---
-    { id: 'screen_default', category: 'screen', name: 'Verde Escuro', price: 0, screenBg: '#0c0e0a' },
-    { id: 'screen_blue', category: 'screen', name: 'Azul CRT', price: 90, screenBg: '#0a0e14' },
-    { id: 'screen_amber', category: 'screen', name: 'Âmbar Escuro', price: 90, screenBg: '#140f08' },
-    { id: 'screen_purple', category: 'screen', name: 'Roxo Retrô', price: 110, screenBg: '#100a14' },
+    // --- Ambientes (cor do piso da arena) ---
+    { id: 'screen_default', category: 'screen', name: 'Arena Padrão', price: 0, screenBg: '#0c0e0a' },
+    { id: 'screen_ocean', category: 'screen', name: 'Oceano', price: 150, screenBg: '#0b3d66' },
+    { id: 'screen_forest', category: 'screen', name: 'Floresta', price: 150, screenBg: '#0f4a2a' },
+    { id: 'screen_lava', category: 'screen', name: 'Vulcão', price: 250, screenBg: '#5a1608' },
+    { id: 'screen_galaxy', category: 'screen', name: 'Galáxia', price: 300, screenBg: '#2a1260' },
+    { id: 'screen_ice', category: 'screen', name: 'Gelo Polar', price: 300, screenBg: '#2f6f8f' },
+    { id: 'screen_sunset', category: 'screen', name: 'Pôr do Sol', price: 400, screenBg: '#7a2a52' },
 
-    // --- Bola ---
-    { id: 'ball_default', category: 'ball', name: 'Verde Fósforo', price: 0, color: '#c8e6c0' },
-    { id: 'ball_white', category: 'ball', name: 'Branca Clássica', price: 60, color: '#f2f2f2' },
-    { id: 'ball_gold', category: 'ball', name: 'Dourada', price: 150, color: '#e8c33d' },
-    { id: 'ball_pink', category: 'ball', name: 'Rosa Neon', price: 150, color: '#ff5fa3' },
-
-    // --- Raquete ---
-    { id: 'paddle_default', category: 'paddle', name: 'Verde Fósforo', price: 0, color: '#c8e6c0' },
-    { id: 'paddle_amber', category: 'paddle', name: 'Âmbar', price: 70, color: '#e8a33d' },
-    { id: 'paddle_blue', category: 'paddle', name: 'Azul Elétrico', price: 70, color: '#5fc9ff' },
-    { id: 'paddle_red', category: 'paddle', name: 'Vermelho Arcade', price: 70, color: '#ff5050' },
-
-    // --- Sons (paleta de timbres) ---
-    { id: 'sound_default', category: 'sound', name: 'Clássico', price: 0, pack: 'classico' },
-    { id: 'sound_soft', category: 'sound', name: 'Suave', price: 80, pack: 'suave' },
-    { id: 'sound_arcade', category: 'sound', name: 'Arcade', price: 80, pack: 'arcade' },
-
-    // --- Efeitos visuais (intensidade do rastro/partículas/brilho) ---
-    { id: 'effects_default', category: 'effects', name: 'Padrão', price: 0, level: 'padrao' },
-    { id: 'effects_min', category: 'effects', name: 'Minimalista', price: 50, level: 'minimo' },
-    { id: 'effects_max', category: 'effects', name: 'Intenso', price: 100, level: 'maximo' },
-
-    // --- Moldura da tela ---
+    // --- Borda neon da arena ---
     { id: 'frame_default', category: 'frame', name: 'Padrão', price: 0, frameColor: '#222222' },
-    { id: 'frame_metal', category: 'frame', name: 'Metálica', price: 90, frameColor: '#8a8a8a' },
-    { id: 'frame_neon', category: 'frame', name: 'Néon', price: 130, frameColor: '#5fc9ff' },
+    { id: 'frame_cyan', category: 'frame', name: 'Ciano', price: 120, frameColor: '#3de8ff' },
+    { id: 'frame_pink', category: 'frame', name: 'Rosa', price: 120, frameColor: '#ff4fb8' },
+    { id: 'frame_green', category: 'frame', name: 'Verde', price: 120, frameColor: '#4dff8a' },
+    { id: 'frame_gold', category: 'frame', name: 'Dourada', price: 250, frameColor: '#ffc61a' },
+    { id: 'frame_white', category: 'frame', name: 'Branco Puro', price: 250, frameColor: '#ffffff' },
 
-    // --- Fonte (tipografia da interface) — todas gratuitas, é só estética ---
+    // --- Pisos (desenho da quadra) ---
+    { id: 'arena_default', category: 'arena', name: 'Liso', price: 0, pattern: 'lisa' },
+    { id: 'arena_grid', category: 'arena', name: 'Grade', price: 100, pattern: 'grade' },
+    { id: 'arena_dots', category: 'arena', name: 'Pontilhado', price: 100, pattern: 'pontos' },
+    { id: 'arena_stripes', category: 'arena', name: 'Diagonais', price: 150, pattern: 'diagonais' },
+
+    // --- Efeitos (rastro, partículas, brilho) ---
+    { id: 'effects_default', category: 'effects', name: 'Padrão', price: 0, level: 'padrao' },
+    { id: 'effects_min', category: 'effects', name: 'Discreto', price: 60, level: 'minimo' },
+    { id: 'effects_max', category: 'effects', name: 'Explosivo', price: 300, level: 'maximo' },
+
+    // --- Sons ---
+    { id: 'sound_default', category: 'sound', name: 'Clássico', price: 0, pack: 'classico' },
+    { id: 'sound_soft', category: 'sound', name: 'Suave', price: 100, pack: 'suave' },
+    { id: 'sound_arcade', category: 'sound', name: 'Arcade', price: 150, pack: 'arcade' },
+
+    // --- Itens antigos (fora da loja; mantidos para compras já feitas) ---
+    { id: 'wood_default', category: 'wood', name: 'Padrão', price: 0, vars: { '--wood-dark': '#4a3324', '--wood-mid': '#6b4a30', '--wood-light': '#8a6440' } },
+    { id: 'console_default', category: 'console', name: 'Padrão', price: 0, vars: { '--panel-black': '#1a1a1a' } },
     { id: 'font_default', category: 'font', name: 'Moderna', price: 0, font: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif" },
-    { id: 'font_pixel', category: 'font', name: 'Pixel Art', price: 0, font: "'VT323', 'Courier New', monospace" },
-    { id: 'font_courier', category: 'font', name: 'Courier Clássica', price: 0, font: "'Courier New', monospace" },
-    { id: 'font_terminal', category: 'font', name: 'Terminal', price: 0, font: "Consolas, Menlo, 'Lucida Console', monospace" },
-    { id: 'font_digital', category: 'font', name: 'Digital Retrô', price: 0, font: "'Courier New', monospace", letterSpacing: '2px' },
-
-    // --- Arena (padrão visual de fundo da quadra) ---
-    { id: 'arena_default', category: 'arena', name: 'Lisa', price: 0, pattern: 'lisa' },
-    { id: 'arena_grid', category: 'arena', name: 'Grade', price: 70, pattern: 'grade' },
-    { id: 'arena_dots', category: 'arena', name: 'Pontilhada', price: 70, pattern: 'pontos' },
-    { id: 'arena_stripes', category: 'arena', name: 'Diagonais', price: 90, pattern: 'diagonais' },
   ];
 
   let playerName = null;
@@ -111,7 +102,7 @@ const GameShop = (function () {
     CATEGORIES.forEach(cat => {
       const def = defaultItemOf(cat.id);
       if (def && !purchased[def.id]) purchased[def.id] = true;
-      if (!equipped[cat.id]) equipped[cat.id] = def ? def.id : null;
+      if (!equipped[cat.id] || !getItem(equipped[cat.id])) equipped[cat.id] = def ? def.id : null;
     });
   }
 

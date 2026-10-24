@@ -1950,3 +1950,61 @@ body.ui-premium .trophy-icon, body.ui-premium .mini-trophy {
           mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z'/></svg>") center/contain no-repeat;
 }
 body.ui-premium .trophy-icon.won, body.ui-premium .mini-trophy.won { background: linear-gradient(180deg,#ffe27a,#ffae1a); opacity: 1; filter: drop-shadow(0 0 6px rgba(255,190,50,.6)); }
+
+/* ===== Loja ===== */
+body.ui-premium .coin-dot { display:inline-block; width:16px; height:16px; border-radius:50%; vertical-align:middle; margin-right:5px;
+  background: radial-gradient(circle at 35% 30%, #fff6c4, #ffc61a 55%, #b87400); box-shadow: 0 0 8px rgba(255,198,26,.6); }
+body.ui-premium .coin-dot.big { width:26px; height:26px; margin:0 8px 0 0; }
+body.ui-premium .shop-balance { display:flex; align-items:center; justify-content:center; gap:4px; padding:10px 16px; margin:0 auto 12px; width:max-content; max-width:100%;
+  border-radius:99px; background:linear-gradient(180deg, rgba(255,198,26,.18), rgba(255,198,26,.05)); border:1px solid rgba(255,198,26,.5); }
+body.ui-premium .shop-balance b { font-size:24px; color:#ffd45c; }
+body.ui-premium .shop-balance small { color:var(--txt-dim); font-size:11px; letter-spacing:1px; margin-left:8px; text-transform:uppercase; }
+body.ui-premium .shop-featured { position:relative; margin:0 0 14px; padding:12px; border-radius:20px;
+  background: radial-gradient(circle at 20% 0%, rgba(166,107,255,.35), transparent 60%), linear-gradient(135deg,#1b1650,#0c1238); border:1px solid rgba(166,107,255,.6); box-shadow:0 0 24px rgba(140,100,255,.3); }
+body.ui-premium .shop-featured-tag { position:absolute; top:-9px; left:16px; z-index:2; font-size:10px; font-weight:900; letter-spacing:2px; padding:3px 10px; border-radius:99px; color:#2b1500;
+  background:linear-gradient(180deg,#ffe27a,#ffae1a); }
+body.ui-premium .shop-featured .shop-card { background:transparent; border:0; box-shadow:none; flex-direction:row; align-items:center; gap:12px; padding:0; }
+body.ui-premium .shop-featured .shop-preview { height:90px; flex:0 0 40%; }
+body.ui-premium .shop-featured .shop-card-name { flex:1; text-align:left; font-size:16px; }
+body.ui-premium .shop-featured .shop-rarity { display:none; }
+body.ui-premium .shop-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin:12px 0 14px; }
+body.ui-premium .shop-card { position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 8px 10px; border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)); border:1px solid var(--rc, rgba(160,190,255,.25)); transition:transform .15s; }
+body.ui-premium .shop-card:active { transform:scale(.97); }
+body.ui-premium .shop-card.r-raro { --rc:rgba(79,195,255,.6); }
+body.ui-premium .shop-card.r-epico { --rc:rgba(166,107,255,.7); box-shadow:0 0 14px rgba(166,107,255,.25); }
+body.ui-premium .shop-card.r-lendario { --rc:rgba(255,198,26,.85); box-shadow:0 0 18px rgba(255,198,26,.35); background:linear-gradient(180deg, rgba(255,198,26,.16), rgba(255,198,26,.03)); }
+body.ui-premium .shop-card.equipped { border-color:rgba(93,255,154,.8); box-shadow:0 0 16px rgba(93,255,154,.3); }
+body.ui-premium .shop-rarity { position:absolute; top:6px; left:8px; font-size:9px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--rc, #8da2d8); }
+body.ui-premium .shop-card.r-raro .shop-rarity { color:#6fd0ff; } body.ui-premium .shop-card.r-epico .shop-rarity { color:#c3a3ff; } body.ui-premium .shop-card.r-lendario .shop-rarity { color:#ffd45c; }
+body.ui-premium .shop-preview { width:100%; height:84px; display:flex; align-items:center; justify-content:center; margin-top:8px; border-radius:12px; background:radial-gradient(circle at 50% 100%, rgba(120,150,255,.18), rgba(0,0,0,.25)); overflow:hidden; }
+body.ui-premium .shop-card-name { font-weight:800; font-size:13px; color:#fff; text-align:center; }
+body.ui-premium .shop-card .shop-action { width:100%; justify-content:center; }
+body.ui-premium .shop-buy { --bt:#ffe27a; --bb:#ffae1a; --be:#a45f00; --fg:#3a2300; font-size:14px; }
+body.ui-premium .shop-buy.poor { filter:grayscale(.55) brightness(.85); }
+body.ui-premium .shop-card .shop-status { padding:9px 0; font-size:12px; letter-spacing:1px; }
+body.ui-premium .sp-ball { width:54px; height:54px; border-radius:50%; background:radial-gradient(circle at 32% 28%, #fff, var(--c) 38%, color-mix(in srgb, var(--c) 45%, #000) 100%);
+  box-shadow:0 0 22px color-mix(in srgb, var(--c) 70%, transparent), 0 14px 10px -8px rgba(0,0,0,.8); animation:spFloat 2.4s ease-in-out infinite; }
+body.ui-premium .sp-paddle { width:16px; height:64px; border-radius:99px; background:linear-gradient(90deg, color-mix(in srgb, var(--c) 55%, #000), var(--c) 45%, #fff 55%, var(--c));
+  box-shadow:0 0 16px color-mix(in srgb, var(--c) 60%, transparent); transform:rotate(14deg); animation:spFloat 2.4s ease-in-out infinite; }
+body.ui-premium .sp-court { width:100%; height:100%; background:linear-gradient(180deg, rgba(0,0,0,.45), transparent 40%), repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, transparent 1px 16px), var(--c); transform:perspective(160px) rotateX(38deg) scale(1.15); transform-origin:50% 100%; }
+body.ui-premium .sp-frame { width:70%; height:56px; border-radius:10px; border:3px solid var(--c); box-shadow:0 0 14px var(--c), inset 0 0 12px color-mix(in srgb, var(--c) 50%, transparent); }
+body.ui-premium .sp-pattern { width:100%; height:100%; background:#0b1a3a; }
+body.ui-premium .sp-grade { background:repeating-linear-gradient(0deg,rgba(94,231,255,.45) 0 1px,transparent 1px 12px), repeating-linear-gradient(90deg,rgba(94,231,255,.45) 0 1px,transparent 1px 12px), #0b1a3a; }
+body.ui-premium .sp-pontos { background:radial-gradient(circle, rgba(94,231,255,.7) 1.5px, transparent 2px) 0 0/12px 12px, #0b1a3a; }
+body.ui-premium .sp-diagonais { background:repeating-linear-gradient(45deg,rgba(94,231,255,.35) 0 4px,transparent 4px 12px), #0b1a3a; }
+body.ui-premium .sp-fx { position:relative; width:60px; height:60px; } body.ui-premium .sp-fx i { position:absolute; width:7px; height:7px; border-radius:50%; background:#ffd45c; box-shadow:0 0 8px #ffd45c; animation:spSpark 1.6s ease-out infinite; opacity:0; left:50%; top:50%; }
+body.ui-premium .sp-fx i:nth-child(1){--x:-26px;--y:-22px;animation-delay:0s} body.ui-premium .sp-fx i:nth-child(2){--x:24px;--y:-26px;animation-delay:.3s}
+body.ui-premium .sp-fx i:nth-child(3){--x:-20px;--y:22px;animation-delay:.6s} body.ui-premium .sp-fx i:nth-child(4){--x:28px;--y:18px;animation-delay:.9s} body.ui-premium .sp-fx i:nth-child(5){--x:0;--y:-30px;animation-delay:1.2s}
+body.ui-premium .sp-fx-minimo i:nth-child(n+3) { display:none; }
+body.ui-premium .sp-wave { display:flex; align-items:center; gap:4px; height:50px; } body.ui-premium .sp-wave i { width:6px; border-radius:3px; background:linear-gradient(180deg,#5ee7ff,#8d7bff); animation:spWave 1s ease-in-out infinite; }
+body.ui-premium .sp-wave i:nth-child(1){height:20px} body.ui-premium .sp-wave i:nth-child(2){height:38px;animation-delay:.1s} body.ui-premium .sp-wave i:nth-child(3){height:48px;animation-delay:.2s} body.ui-premium .sp-wave i:nth-child(4){height:30px;animation-delay:.3s} body.ui-premium .sp-wave i:nth-child(5){height:42px;animation-delay:.4s} body.ui-premium .sp-wave i:nth-child(6){height:22px;animation-delay:.5s}
+@keyframes spFloat { 0%,100%{transform:translateY(0) rotate(var(--r,0deg))} 50%{transform:translateY(-5px) rotate(var(--r,0deg))} }
+body.ui-premium .sp-paddle { --r:14deg; }
+@keyframes spSpark { 0%{opacity:0;transform:translate(-50%,-50%) scale(.4)} 30%{opacity:1} 100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1)} }
+@keyframes spWave { 0%,100%{transform:scaleY(.55)} 50%{transform:scaleY(1)} }
+@media (prefers-reduced-motion: reduce) { body.ui-premium .shop-preview * { animation:none !important; } }
+body.ui-premium .shop-featured .shop-card { flex-wrap: wrap; }
+body.ui-premium .shop-featured .shop-preview { flex: 0 0 38%; margin-top: 0; }
+body.ui-premium .shop-featured .shop-card-name { flex: 1 1 0; min-width: 0; font-size: 18px; }
+body.ui-premium .shop-featured .shop-action, body.ui-premium .shop-featured .shop-status { flex: 1 1 100%; width: 100%; max-width: 100%; margin: 0; }

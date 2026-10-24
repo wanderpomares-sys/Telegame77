@@ -829,7 +829,7 @@ function showRankingOverlay(expanded) {
   document.getElementById('overlay').style.display = 'flex';
 }
 
-let shopActiveCategory = 'wood';
+let shopActiveCategory = 'ball';
 
 /** Tela da loja: abas de categoria + grade de itens da categoria escolhida. */
 const AD_COINS_REWARD = 30;
@@ -866,49 +866,98 @@ async function watchAdForCoins() {
   }, `ganhar +${AD_COINS_REWARD} moedas`);
 }
 
+function shopRarity(item) {
+  if (item.price === 0) return { id: 'base', label: 'Padrão' };
+  if (item.price <= 120) return { id: 'raro', label: 'Raro' };
+  if (item.price <= 300) return { id: 'epico', label: 'Épico' };
+  return { id: 'lendario', label: 'Lendário' };
+}
+
+function shopPreviewHtml(item) {
+  const c = item.color || item.frameColor || '#5ee7ff';
+  switch (item.category) {
+    case 'ball':
+      return `<span class="sp-ball" style="--c:${c}"></span>`;
+    case 'paddle':
+      return `<span class="sp-paddle" style="--c:${c}"></span>`;
+    case 'screen':
+      return `<span class="sp-court" style="--c:${item.screenBg}"></span>`;
+    case 'frame':
+      return `<span class="sp-frame" style="--c:${c}"></span>`;
+    case 'arena':
+      return `<span class="sp-pattern sp-${item.pattern}"></span>`;
+    case 'effects':
+      return `<span class="sp-fx sp-fx-${item.level}"><i></i><i></i><i></i><i></i><i></i></span>`;
+    default:
+      return `<span class="sp-wave"><i></i><i></i><i></i><i></i><i></i><i></i></span>`;
+  }
+}
+
+function shopCardHtml(item, featured) {
+  const r = shopRarity(item);
+  let action;
+  if (item.equipped) action = `<span class="shop-status equipped">EQUIPADO</span>`;
+  else if (item.purchased) action = `<button class="overlay-btn shop-action" data-shop-equip="${item.id}">EQUIPAR</button>`;
+  else {
+    const can = GameCoins.getBalance() >= item.price;
+    action = `<button class="overlay-btn shop-action shop-buy${can ? '' : ' poor'}" data-shop-buy="${item.id}"><span class="coin-dot"></span>${item.price}</button>`;
+  }
+  return `
+    <div class="shop-card r-${r.id}${item.equipped ? ' equipped' : ''}${featured ? ' featured' : ''}">
+      <span class="shop-rarity">${r.label}</span>
+      <div class="shop-preview">${shopPreviewHtml(item)}</div>
+      <div class="shop-card-name">${item.name}</div>
+      ${action}
+    </div>`;
+}
+
 async function showShopOverlay(category) {
   if (category) shopActiveCategory = category;
 
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
-  document.getElementById('overlayTitle').textContent = `🛒 Loja · 🪙 ${GameCoins.getBalance()}`;
+  document.getElementById('overlayTitle').textContent = 'Loja';
 
   const tabsHtml = GameShop.CATEGORIES.map(cat => `
     <button class="shop-tab${cat.id === shopActiveCategory ? ' active' : ''}" data-shop-category="${cat.id}">${cat.label}</button>
   `).join('');
 
+  // Destaque: o item mais valioso que o jogador ainda não tem
+  let featuredItem = null;
+  GameShop.CATEGORIES.forEach(cat => {
+    GameShop.getCategoryView(cat.id).forEach(it => {
+      if (!it.purchased && (!featuredItem || it.price > featuredItem.price)) featuredItem = it;
+    });
+  });
+  const featuredHtml = featuredItem ? `
+    <div class="shop-featured">
+      <div class="shop-featured-tag">DESTAQUE</div>
+      ${shopCardHtml(featuredItem, true)}
+    </div>` : '';
+
   const items = GameShop.getCategoryView(shopActiveCategory);
-  const itemsHtml = items.map(item => {
-    let statusHtml;
-    if (item.equipped) statusHtml = `<span class="shop-status equipped">Equipado</span>`;
-    else if (item.purchased) statusHtml = `<button class="overlay-btn shop-action" data-shop-equip="${item.id}">Equipar</button>`;
-    else statusHtml = `<button class="overlay-btn shop-action" data-shop-buy="${item.id}">Comprar · 🪙 ${item.price}</button>`;
-    return `
-      <div class="shop-item${item.equipped ? ' equipped' : ''}">
-        <span class="shop-item-swatch" style="background:${item.color || item.screenBg || item.frameColor || (item.vars && item.vars['--wood-mid']) || '#666'};"></span>
-        <span class="shop-item-name">${item.name}</span>
-        ${statusHtml}
-      </div>`;
-  }).join('');
+  const itemsHtml = items.map(item => shopCardHtml(item, false)).join('');
 
   const adsWatchedToday = await getAdWatchCountToday();
   const adLimitReached = adsWatchedToday >= AD_WATCH_DAILY_LIMIT;
   const adRowHtml = `
     <div class="shop-ad-row${adLimitReached ? ' disabled' : ''}">
-      <span>🎬 Assistir anúncio curto · +${AD_COINS_REWARD} 🪙</span>
+      <span>Moedas grátis · assista um anúncio curto e ganhe +${AD_COINS_REWARD}</span>
       <button class="overlay-btn shop-action" id="watchAdCoinsBtn" ${adLimitReached ? 'disabled' : ''}>
         ${adLimitReached ? `Volte amanhã` : `Assistir (${adsWatchedToday}/${AD_WATCH_DAILY_LIMIT} hoje)`}
       </button>
     </div>
     <div class="shop-ad-row">
-      <span>🚫 Remover Anúncios · jogue sem anúncios e apoie o projeto</span>
+      <span>Remover anúncios · jogue sem interrupções e apoie o projeto</span>
       <button class="overlay-btn shop-action" id="removeAdsBtn">Em breve</button>
     </div>`;
 
   document.getElementById('overlayMsg').innerHTML = `
-    ${adRowHtml}
+    <div class="shop-balance"><span class="coin-dot big"></span><b>${GameCoins.getBalance()}</b><small>suas moedas</small></div>
+    ${featuredHtml}
     <div class="shop-tabs">${tabsHtml}</div>
-    <div class="shop-items">${itemsHtml}</div>
+    <div class="shop-grid">${itemsHtml}</div>
+    ${adRowHtml}
   `;
 
   const removeAdsBtn = document.getElementById('removeAdsBtn');
@@ -944,6 +993,7 @@ async function showShopOverlay(category) {
         GameAudio.playCoin();
         vibrate(20);
         updateCoinDisplay();
+        if (GameShop.equip(btn.dataset.shopBuy)) applyCosmetics(GameShop.getEquippedConfig());
       } else if (result.reason === 'moedas-insuficientes') {
         GameAudio.playToggleOff();
       }
