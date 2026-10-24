@@ -249,23 +249,25 @@ bindHoldPointer(document.getElementById('p1down'), 'touchP1Down');
 let isDraggingPaddle = false;
 let dragPointerId = null;
 
-function setP1FromClientY(clientY) {
-  const rect = canvas.getBoundingClientRect();
-  const relativeY = (clientY - rect.top) / rect.height; // 0..1
-  const targetCenterY = relativeY * H;
-  p1.y = Math.max(0, Math.min(H - paddleH, targetCenterY - paddleH / 2));
-}
+// Arraste RELATIVO: a raquete acompanha o MOVIMENTO do dedo (com ganho), sem
+// pular pra onde o dedo encostou — assim dá pra ajustar fino e também cruzar
+// a tela rápido com um deslize curto.
+const DRAG_GAIN = 1.6;
+let dragLastClientY = 0;
 
 canvas.addEventListener('pointerdown', e => {
   ensureAudio();
   isDraggingPaddle = true;
   dragPointerId = e.pointerId;
+  dragLastClientY = e.clientY;
   try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignora se não suportado */ }
-  setP1FromClientY(e.clientY);
 });
 canvas.addEventListener('pointermove', e => {
   if (isDraggingPaddle && e.pointerId === dragPointerId) {
-    setP1FromClientY(e.clientY);
+    const rect = canvas.getBoundingClientRect();
+    const dy = (e.clientY - dragLastClientY) * (H / rect.height) * DRAG_GAIN;
+    dragLastClientY = e.clientY;
+    p1.y = Math.max(0, Math.min(H - paddleH, p1.y + dy));
   }
 });
 function endPaddleDrag(e) {
@@ -411,7 +413,7 @@ function logout() {
   updateMenuGate();
   applyCosmetics({
     ballColor: '#c8e6c0', paddleColor: '#c8e6c0', screenBg: '#0c0e0a', effectsLevel: 'padrao', soundPack: 'classico',
-    font: "'Courier New', monospace", letterSpacing: 'normal',
+    font: "'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif", letterSpacing: 'normal',
     cssVars: { '--wood-dark': '#4a3324', '--wood-mid': '#6b4a30', '--wood-light': '#8a6440', '--panel-black': '#1a1a1a', '--frame-color': '#222222' },
   });
 }
@@ -2118,11 +2120,11 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-var TOUCH_TAP_STEP = 7;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
-const TOUCH_HOLD_DELAY_MS = 70; // só começa a deslizar depois disso (toque curto não "foge")
-const TOUCH_SPEED_MIN = 2.5;  // velocidade ao começar a deslizar
-const TOUCH_SPEED_MAX = 9;    // velocidade segurando (acompanha a bola no teto de velocidade)
-const TOUCH_RAMP_MS = 160;    // tempo até atingir a velocidade máxima
+var TOUCH_TAP_STEP = 6;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
+const TOUCH_HOLD_DELAY_MS = 60; // só começa a deslizar depois disso (toque curto não "foge")
+const TOUCH_SPEED_MIN = 3.5;  // velocidade ao começar a deslizar
+const TOUCH_SPEED_MAX = 12;   // velocidade segurando (acompanha a bola no teto de velocidade)
+const TOUCH_RAMP_MS = 130;    // tempo até atingir a velocidade máxima
 
 /** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
 function touchSpeedFor(keyName) {

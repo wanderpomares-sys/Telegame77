@@ -10,7 +10,7 @@
  * número da versão em CACHE_NAME abaixo — é assim que o navegador sabe que
  * precisa baixar tudo de novo em vez de usar a cópia antiga guardada.
  */
-const CACHE_VERSION = 'v20';
+const CACHE_VERSION = 'v24';
 const CACHE_NAME = 'telegamevintage-' + CACHE_VERSION;
 
 // Arquivos essenciais pro jogo abrir e rodar sem rede.
@@ -62,6 +62,8 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Só cuida de requisições GET normais (não mexe em POST, chamadas de API externas, etc.)
   if (event.request.method !== 'GET') return;
+  // Não mexe em pedidos de outros domínios (ex: Google Analytics)
+  if (new URL(event.request.url).origin !== self.location.origin) return;
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
