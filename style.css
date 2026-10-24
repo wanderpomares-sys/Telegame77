@@ -2474,3 +2474,4 @@ body.ui-premium .gameplay-controls .target-label { margin: 6px 4px 2px; }
 body.ui-premium .gameplay-controls .target-btn, body.ui-premium .gameplay-controls .target-btn:first-of-type, body.ui-premium .gameplay-controls .target-btn:last-of-type { border: 0; border-radius: 12px; background: transparent; color: rgba(255,255,255,.5); font: 400 11px var(--lb-mono); letter-spacing: .1em; text-transform: uppercase; }
 body.ui-premium .gameplay-controls .target-btn.active { background: #00f5ff; color: #0A0A14; font-weight: 700; box-shadow: 0 0 10px rgba(0,245,255,.3); text-shadow: none; }
 body.ui-premium .gameplay-controls .instructions { font: 400 10px/1.5 var(--lb-mono); color: rgba(255,255,255,.4); }
+body.ui-premium .touch-controls .start-btn.off { opacity: .55; }

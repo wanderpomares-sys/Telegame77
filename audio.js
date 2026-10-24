@@ -198,7 +198,7 @@ const GameAudio = (function () {
 
   // --- Música de fundo (procedural — sem arquivos de áudio) -------------------
   // Um loop curto e discreto, no estilo dos consoles antigos. Desligada por
-  // padrão (o jogador liga em Configurações, se quiser).
+  // padrão; o jogador liga no botão MÚSICA ou em Configurações.
   let musicEnabled = false;
   let musicTimer = null;
   const MUSIC_PATTERN = [220, 262, 294, 220, 330, 294, 262, 196]; // notas em Hz, um loop simples
@@ -212,16 +212,42 @@ const GameAudio = (function () {
     musicStep++;
   }
 
+  let musicBuf = null, musicLoading = false, musicSrc = null, musicGain = null;
+  function loadMusic(then) {
+    if (musicBuf) { then(); return; }
+    if (musicLoading || !audioCtx) return;
+    musicLoading = true;
+    fetch('sounds/music_loop.mp3').then((r) => r.arrayBuffer())
+      .then((b) => new Promise((ok, no) => audioCtx.decodeAudioData(b, ok, no)))
+      .then((d) => { musicBuf = d; musicLoading = false; if (musicEnabled) then(); })
+      .catch(() => { musicLoading = false; });
+  }
+  function playMusicLoop() {
+    if (!musicEnabled || musicSrc || !musicBuf || !audioCtx) return;
+    musicSrc = audioCtx.createBufferSource(); musicGain = audioCtx.createGain();
+    musicSrc.buffer = musicBuf; musicSrc.loop = true;
+    musicGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    musicGain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 1.2);
+    musicSrc.connect(musicGain); musicGain.connect(audioCtx.destination); musicSrc.start();
+  }
+  function saveMusicPref() { try { localStorage.setItem('tg-music', musicEnabled ? '1' : '0'); } catch (e) { /* ok */ } }
+
   function startMusic() {
-    if (musicTimer) return; // já tocando
-    musicEnabled = true;
-    playMusicStep();
-    musicTimer = setInterval(playMusicStep, 320);
+    musicEnabled = true; saveMusicPref();
+    if (!ensureAudio()) return;
+    if (musicBuf) { playMusicLoop(); return; }
+    loadMusic(playMusicLoop);
+    // enquanto o arquivo carrega (ou se falhar), usa a trilha sintetizada
+    if (!musicTimer) { playMusicStep(); musicTimer = setInterval(() => { if (musicBuf) { clearInterval(musicTimer); musicTimer = null; playMusicLoop(); } else playMusicStep(); }, 320); }
   }
 
   function stopMusic() {
-    musicEnabled = false;
+    musicEnabled = false; saveMusicPref();
     if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+    if (musicSrc) {
+      try { musicGain.gain.cancelScheduledValues(0); musicSrc.stop(); } catch (e) { /* ok */ }
+      musicSrc = null;
+    }
   }
 
   function toggleMusic() {
@@ -229,6 +255,16 @@ const GameAudio = (function () {
     else startMusic();
     return musicEnabled;
   }
+
+  /** Se o jogador deixou a música ligada da última vez, religa no primeiro toque (o navegador exige um toque). */
+  function restoreMusicPref() {
+    let on = false;
+    try { on = localStorage.getItem('tg-music') === '1'; } catch (e) { /* ok */ }
+    if (!on) return;
+    const go = () => { window.removeEventListener('pointerdown', go); if (!musicEnabled) startMusic(); };
+    window.addEventListener('pointerdown', go);
+  }
+  restoreMusicPref();
 
   function isMusicEnabled() { return musicEnabled; }
 

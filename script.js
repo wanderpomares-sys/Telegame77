@@ -192,6 +192,18 @@ function playRoundLose() { GameAudio.playRoundLose(); }
 function playTrophyFanfare() { GameAudio.playTrophyFanfare(); }
 function vibrate(pattern) { GameAudio.vibrate(pattern); }
 
+function refreshMusicBtn() {
+  const b = document.getElementById('musicBtn');
+  if (b) { const on = GameAudio.isMusicEnabled(); b.classList.toggle('off', !on); b.textContent = on ? 'MÚSICA' : 'MÚSICA OFF'; }
+}
+document.getElementById('musicBtn').addEventListener('click', () => {
+  GameAudio.ensureAudio();
+  GameAudio.toggleMusic();
+  refreshMusicBtn();
+});
+window.addEventListener('pointerdown', () => setTimeout(refreshMusicBtn, 50));
+refreshMusicBtn();
+
 document.getElementById('soundBtn').addEventListener('click', () => {
   const enabled = GameAudio.toggleSound();
   document.getElementById('soundBtn').textContent = enabled ? 'SOM' : 'MUDO';
@@ -1330,7 +1342,7 @@ function showSettingsOverlay() {
   const swS = document.getElementById('swSound');
   if (swS) swS.addEventListener('click', () => { document.getElementById('soundBtn').click(); showSettingsOverlay(); });
   const swM = document.getElementById('swMusic');
-  if (swM) swM.addEventListener('click', () => { ensureAudio(); GameAudio.toggleMusic(); showSettingsOverlay(); });
+  if (swM) swM.addEventListener('click', () => { ensureAudio(); GameAudio.toggleMusic(); refreshMusicBtn(); showSettingsOverlay(); });
   const outBtn = document.getElementById('setLogout');
   if (outBtn) outBtn.addEventListener('click', () => { hideOverlay(); logout(); showMainMenu(); });
 
@@ -1382,7 +1394,7 @@ function showCreditsOverlay() {
       <div>${t('credits.body')}</div>
       <div>${t('credits.criadoPor')} <b>Wander Pomares</b>.</div>
       <div>${t('credits.feitoCom')}</div>
-      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0.</div>
+      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0. Música de fundo original criada para o jogo.</div>
     </div>`;
 }
 
