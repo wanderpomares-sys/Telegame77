@@ -1394,7 +1394,7 @@ function showCreditsOverlay() {
       <div>${t('credits.body')}</div>
       <div>${t('credits.criadoPor')} <b>Wander Pomares</b>.</div>
       <div>${t('credits.feitoCom')}</div>
-      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0. Música de fundo (rock) original criada para o jogo.</div>
+      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0. Música: "Hard Rock" por <b>AlexGrohl</b> (Pixabay, licença Pixabay Content License).</div>
     </div>`;
 }
 
