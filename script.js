@@ -432,6 +432,48 @@ function updateCoinDisplay() {
   el.textContent = playerName ? `🪙 ${GameCoins.getBalance()}` : '';
 }
 
+
+// --- Lobby (menu principal): textos de apoio e dados reais do jogador ---------
+const LB_TEXT = {
+  pt: { playNow: 'Jogar Agora', sec1: 'ENTRAR EM AÇÃO', sec2: 'SEU LEGADO', sec3: 'LOJA & SISTEMA',
+    jogar: 'Partida rápida • Contra a CPU', campeonato: '4 fases • Dificuldade crescente',
+    loja: 'Bolas • Raquetes • Arenas', configuracoes: 'Áudio • Gráficos • Idioma', ajuda: 'Tutorial • Regras 1977', creditos: 'Sobre o jogo',
+    matches: 'partidas', wins: 'vitórias', unlocked: 'desbloqueadas', best: 'melhor posição', noRank: 'jogue para entrar' },
+  en: { playNow: 'Play Now', sec1: 'JUMP IN', sec2: 'YOUR LEGACY', sec3: 'STORE & SYSTEM',
+    jogar: 'Quick match • Versus CPU', campeonato: '4 stages • Rising difficulty',
+    loja: 'Balls • Paddles • Arenas', configuracoes: 'Audio • Graphics • Language', ajuda: 'Tutorial • 1977 rules', creditos: 'About the game',
+    matches: 'matches', wins: 'wins', unlocked: 'unlocked', best: 'best position', noRank: 'play to enter' },
+  es: { playNow: 'Jugar Ya', sec1: 'ENTRAR EN ACCIÓN', sec2: 'TU LEGADO', sec3: 'TIENDA Y SISTEMA',
+    jogar: 'Partida rápida • Contra la CPU', campeonato: '4 fases • Dificultad creciente',
+    loja: 'Pelotas • Raquetas • Arenas', configuracoes: 'Audio • Gráficos • Idioma', ajuda: 'Tutorial • Reglas 1977', creditos: 'Sobre el juego',
+    matches: 'partidas', wins: 'victorias', unlocked: 'desbloqueadas', best: 'mejor posición', noRank: 'juega para entrar' },
+};
+
+function updateLobbyInfo() {
+  const lang = (GameI18n.getLang && GameI18n.getLang()) || 'pt';
+  const L = LB_TEXT[lang] || LB_TEXT.pt;
+  document.querySelectorAll('[data-lb]').forEach(el => { el.textContent = L[el.dataset.lb] || ''; });
+  const heroName = document.querySelector('.lb-hero .lb-name');
+  if (heroName) heroName.textContent = L.playNow;
+  const av = document.getElementById('menuAvatar');
+  if (av) av.textContent = (playerName || 'W').trim().charAt(0).toUpperCase();
+  if (!playerName) return;
+  try {
+    const st = GameStats.getSummary();
+    document.getElementById('lbStatsMain').textContent = st.matchesPlayed;
+    document.getElementById('lbStatsSub').textContent = `${L.matches} • ${st.winRate}% ${L.wins}`;
+    const total = GameAchievements.DEFINITIONS.length, got = GameAchievements.getUnlockedCount();
+    document.getElementById('lbAchSub').textContent = `${got}/${total} ${L.unlocked}`;
+    document.getElementById('lbAchBar').style.width = (total ? Math.round(got / total * 100) : 0) + '%';
+    const rank = GameRanking.getMyBestRank(playerName);
+    document.getElementById('lbRankMain').textContent = rank ? '#' + rank : '—';
+    document.getElementById('lbRankSub').textContent = rank ? L.best : L.noRank;
+    const won = Object.keys(trophies).filter(k => trophies[k]).length;
+    document.getElementById('lbChampPct').textContent = `${won}/4`;
+    document.getElementById('lbChampBar').style.width = (won * 25) + '%';
+  } catch (e) { /* dados ainda carregando: mantém os valores anteriores */ }
+}
+
 function updateProfileUI() {
   if (!playerName) return;
   const info = GameLevels.getInfo();
@@ -443,7 +485,7 @@ function updateProfileUI() {
 
   document.getElementById('menuProfileLogin').style.display = 'none';
   document.getElementById('menuProfileInfo').style.display = 'flex';
-  document.getElementById('menuProfileName').textContent = nameLabel;
+  document.getElementById('menuProfileName').innerHTML = `${escapeHtml(playerName)} <em class="lb-lv">Nv.${info.level}</em>`;
 
   [document.getElementById('trophyCase'), document.getElementById('menuTrophyCase')].forEach(caseEl => {
     caseEl.innerHTML = '';
@@ -456,6 +498,7 @@ function updateProfileUI() {
     });
   });
   updateTrophyBadges();
+  updateLobbyInfo();
 }
 
 function updateTrophyBadges() {
@@ -772,6 +815,7 @@ function showMainMenu() {
   stopFireworks();
   document.getElementById('mainMenuOverlay').classList.remove('hidden');
   document.body.classList.remove('in-lobby');
+  updateLobbyInfo();
   // Sem identificação ainda: coloca o cursor pronto no campo de nome,
   // já que é a primeira coisa que faz sentido o jogador fazer.
   if (!playerName) {
@@ -2868,9 +2912,13 @@ function applyTranslations() {
   document.querySelectorAll('[data-menu-action]').forEach((btn) => {
     const key = 'menu.' + btn.dataset.menuAction;
     const translated = t(key);
-    const txt = translated !== key ? translated : btn.textContent;
-    btn.textContent = txt.replace(/^[\p{Extended_Pictographic}\p{S}\p{P}\uFE0F\u200d\s]+/u, '').trim(); // sem emoji: o ícone vetorial vem do CSS
+    const nameEl = btn.querySelector('.lb-name');
+    const txt = translated !== key ? translated : (nameEl ? nameEl.textContent : btn.textContent);
+    const clean = txt.replace(/^[\p{Extended_Pictographic}\p{S}\p{P}\uFE0F\u200d\s]+/u, '').trim(); // sem emoji: ícones são vetoriais
+    if (nameEl) nameEl.textContent = clean; else btn.textContent = clean;
   });
+
+  updateLobbyInfo();
 
   // Login (tanto o campo dentro do menu quanto o de dentro do jogo)
   document.getElementById('menuLoginHint').textContent = t('menu.loginHint');

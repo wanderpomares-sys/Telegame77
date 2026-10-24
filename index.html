@@ -50,27 +50,63 @@
   <div class="console-body" id="consoleBody">
 
     <div class="main-menu" id="mainMenuOverlay">
-      
+     <div class="lb-wrap">
+      <header class="lb-header">
+        <div class="lb-brand">
+          <div class="lb-brand-row"><span class="lb-tg">TG</span><h1 class="lb-title"><b>TELE GAME</b> <em>VINTAGE</em> <s>1977</s></h1></div>
+          <div class="lb-tag"><span class="lb-tag-line"></span>LOBBY // FUTURE-RETRO</div>
+        </div>
+        <div class="menu-profile-info" id="menuProfileInfo" style="display:none;">
+          <div class="lb-chip"><span class="lb-avatar" id="menuAvatar">W</span><span class="profile-name" id="menuProfileName"></span></div>
+          <span class="trophy-case" id="menuTrophyCase"></span>
+        </div>
+      </header>
+
       <div class="menu-profile-login" id="menuProfileLogin">
         <input type="text" id="menuPlayerNameInput" placeholder="Seu nome de jogador" maxlength="20">
         <button class="champ-btn" id="menuLoginBtn">Entrar</button>
       </div>
-      <div class="menu-profile-info" id="menuProfileInfo" style="display:none;">
-        <span class="profile-name" id="menuProfileName"></span>
-        <span class="trophy-case" id="menuTrophyCase"></span>
-      </div>
       <div class="menu-login-hint" id="menuLoginHint">Digite seu nome acima pra entrar</div>
+
       <div class="main-menu-buttons" id="mainMenuButtons" style="display:none;">
-        <button class="menu-btn" data-menu-action="jogar">▶ Jogar</button>
-        <button class="menu-btn" data-menu-action="campeonato">🏆 Campeonato</button>
-        <button class="menu-btn" data-menu-action="estatisticas">📊 Estatísticas</button>
-        <button class="menu-btn" data-menu-action="conquistas">🎖️ Conquistas</button>
-        <button class="menu-btn" data-menu-action="ranking">📈 Ranking</button>
-        <button class="menu-btn" data-menu-action="loja">🛒 Loja</button>
-        <button class="menu-btn" data-menu-action="configuracoes">⚙️ Configurações</button>
-        <button class="menu-btn" data-menu-action="ajuda">❓ Como Jogar</button>
-        <button class="menu-btn" data-menu-action="creditos">ℹ️ Créditos</button>
+        <section class="lb-sec">
+          <div class="lb-sec-h"><i class="lb-secico s-orange"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8.5 14.5A2.5 2.5 0 0012 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.500 2 4.900 4 6.500s3 3.500 3 5.500a7 7 0 11-14 0c0-1.200.4-2.300 1-3 .3 1 .8 2 1.500 2.500z'/></svg></i><h2 data-lb="sec1">ENTRAR EM AÇÃO</h2><span class="lb-sec-line s-orange"></span></div>
+          <button class="menu-btn lb-btn lb-hero" data-menu-action="jogar">
+            <img src="img/lobby-hero.webp" alt="" loading="eager">
+            <span class="lb-shade"></span>
+            <span class="lb-hero-in"><span class="lb-play"><svg class='lb-svg' viewBox='0 0 24 24' fill='currentColor'><path d='M7 4l13 8-13 8z'/></svg></span>
+              <span class="lb-hero-txt"><b class="lb-name">Jogar Agora</b><small class="lb-sub" data-lb="jogar"></small></span></span>
+          </button>
+          <button class="menu-btn lb-btn lb-champ" data-menu-action="campeonato">
+            <span class="lb-champ-art"><img src="img/lobby-champ.webp" alt="" loading="lazy"></span>
+            <span class="lb-champ-in"><span class="lb-trophy"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9H4.500a2.500 2.500 0 010-5H6M18 9h1.500a2.500 2.500 0 000-5H18M4 22h16M10 14.700V17c0 .6-.5 1-1.200 1.200C7.800 18.600 7 20.200 7 22M14 14.700V17c0 .6.5 1 1.200 1.200 1 .4 1.800 2 1.800 3.800M18 2H6v7a6 6 0 0012 0z'/></svg></span>
+              <span class="lb-champ-txt"><b class="lb-name">Campeonato</b><small class="lb-sub" data-lb="campeonato"></small>
+                <span class="lb-prog"><span class="lb-bar"><i id="lbChampBar"></i></span><em id="lbChampPct">0/4</em></span></span></span>
+          </button>
+        </section>
+
+        <section class="lb-sec">
+          <div class="lb-sec-h"><i class="lb-secico s-blue"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M8 17v-5M13 17V8M18 17v-9'/></svg></i><h2 data-lb="sec2">SEU LEGADO</h2><span class="lb-sec-line s-blue"></span></div>
+          <div class="lb-cards">
+            <button class="menu-btn lb-btn lb-card c-cyan" data-menu-action="estatisticas"><span class="lb-ci"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M8 17v-5M13 17V8M18 17v-9'/></svg></span><b class="lb-name">Estatísticas</b><span class="lb-info"><strong id="lbStatsMain">0</strong><small id="lbStatsSub"></small></span></button>
+            <button class="menu-btn lb-btn lb-card c-pink" data-menu-action="conquistas"><span class="lb-ci"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2l3 7 7 .6-5.300 4.600 1.600 7L12 17.800 5.700 21.200l1.600-7L2 9.600 9 9z'/></svg></span><b class="lb-name">Conquistas</b><span class="lb-info"><small id="lbAchSub">0/0</small><span class="lb-bar"><i id="lbAchBar"></i></span></span></button>
+            <button class="menu-btn lb-btn lb-card c-violet" data-menu-action="ranking"><span class="lb-ci"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 8l5 4 5-8 5 8 5-4-2 11H4z'/></svg></span><b class="lb-name">Ranking</b><span class="lb-info"><strong id="lbRankMain">—</strong><small id="lbRankSub"></small></span></button>
+          </div>
+        </section>
+
+        <section class="lb-sec">
+          <div class="lb-sec-h"><i class="lb-secico s-gray"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0'/><circle cx='16' cy='6' r='2'/><circle cx='8' cy='12' r='2'/><circle cx='18' cy='18' r='2'/></svg></i><h2 data-lb="sec3">LOJA &amp; SISTEMA</h2><span class="lb-sec-line s-gray"></span></div>
+          <div class="lb-list">
+            <button class="menu-btn lb-btn lb-row" data-menu-action="loja"><span class="lb-ri"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='21' r='1'/><circle cx='20' cy='21' r='1'/><path d='M1 1h4l2.700 13.400a2 2 0 002 1.600h9.700a2 2 0 002-1.600L23 6H6'/></svg></span><span class="lb-rt"><b class="lb-name">Loja</b><em class="lb-new">NOVO</em><small class="lb-sub" data-lb="loja"></small></span><span class="lb-go"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></svg></span></button>
+            <button class="menu-btn lb-btn lb-row" data-menu-action="configuracoes"><span class="lb-ri"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h10M18 6h2M4 12h2M10 12h10M4 18h12M20 18h0'/><circle cx='16' cy='6' r='2'/><circle cx='8' cy='12' r='2'/><circle cx='18' cy='18' r='2'/></svg></span><span class="lb-rt"><b class="lb-name">Configurações</b><small class="lb-sub" data-lb="configuracoes"></small></span><span class="lb-go"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></svg></span></button>
+            <button class="menu-btn lb-btn lb-row" data-menu-action="ajuda"><span class="lb-ri"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M9.100 9a3 3 0 015.800 1c0 2-3 3-3 3M12 17h.01'/></svg></span><span class="lb-rt"><b class="lb-name">Como Jogar</b><small class="lb-sub" data-lb="ajuda"></small></span><span class="lb-go"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></svg></span></button>
+            <button class="menu-btn lb-btn lb-row" data-menu-action="creditos"><span class="lb-ri"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 16v-4M12 8h.01'/></svg></span><span class="lb-rt"><b class="lb-name">Créditos</b><small class="lb-sub" data-lb="creditos"></small></span><span class="lb-go"><svg class='lb-svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 6l6 6-6 6'/></svg></span></button>
+          </div>
+        </section>
       </div>
+
+      <footer class="lb-foot"><span>1977 → 2026</span><span class="lb-dot"></span><span>CRIADO POR WANDER POMARES</span></footer>
+     </div>
     </div>
 
     <div class="overlay" id="overlay">

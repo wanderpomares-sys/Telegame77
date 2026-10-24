@@ -724,7 +724,7 @@ const Game3D = (function () {
 
   function menuVisible() {
     const menu = document.getElementById('mainMenuOverlay');
-    return !!(menu && !menu.classList.contains('hidden'));
+    return false; // o lobby novo usa imagens; sem vitrine 3D atrás do menu
   }
   function enterShowcase() {
     consoleBody = document.getElementById('consoleBody');
