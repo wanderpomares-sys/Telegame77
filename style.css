@@ -2105,3 +2105,45 @@ body.ui-premium .gameplay-controls .target-btn { align-self: stretch; }
 body.ui-premium .wood-strip { padding-top: calc(30px + env(safe-area-inset-top, 0px)); overflow: visible; }
 body.ui-premium .brand-row { overflow: visible; padding-top: 4px; }
 body.ui-premium .brand { line-height: 1.35; padding: 6px 4px 4px; overflow: visible; }
+
+/* ===== Título sem recorte (sem background-clip:text) ===== */
+body.ui-premium .brand {
+  background: none; -webkit-background-clip: border-box; background-clip: border-box;
+  -webkit-text-fill-color: #eaf2ff; color: #eaf2ff; filter: none;
+  text-shadow: 0 0 10px rgba(94,231,255,.9), 0 0 26px rgba(141,123,255,.8), 0 3px 0 rgba(10,12,50,.7);
+  line-height: 1.4; padding: 8px 4px 6px; white-space: nowrap;
+}
+body.ui-premium .brand-row { padding-top: 10px; }
+
+/* ===== Menu em grupos ===== */
+body.ui-premium .main-menu-buttons { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; max-width: 340px; width: 100%; }
+body.ui-premium .main-menu-buttons .menu-btn { margin: 0; }
+/* Grupo 1: ações principais, largas e verticais */
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(1),
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(2) { grid-column: span 6; min-height: 58px; font-size: 17px; }
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(1) { min-height: 68px; font-size: 20px; letter-spacing: 2px; }
+/* Grupo 2: três blocos na horizontal, ícone em cima */
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(3),
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(4),
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(5) {
+  grid-column: span 2; flex-direction: column; justify-content: center; gap: 6px; padding: 12px 2px; min-height: 84px; text-align: center; font-size: 10.5px; letter-spacing: .3px; --dp: 4px;
+}
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(3)::before,
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(4)::before,
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(5)::before { flex: 0 0 30px; width: 30px; height: 30px; }
+/* Grupo 3: loja em faixa larga */
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(6) { grid-column: span 6; min-height: 54px; justify-content: center; }
+/* Grupo 4: ferramentas, vidro discreto, ícone em cima */
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(7),
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(8),
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(9) {
+  grid-column: span 2; flex-direction: column; justify-content: center; gap: 4px; padding: 10px 2px; min-height: 66px; text-align: center; font-size: 9.5px; letter-spacing: .2px; --dp: 0px;
+  background: rgba(255,255,255,.07); color: #dbe6ff; border: 1px solid rgba(255,255,255,.2); box-shadow: none; text-shadow: none; border-radius: 14px;
+}
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(7):hover,
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(8):hover,
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(9):hover { background: rgba(255,255,255,.12); color: #fff; }
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(7)::before,
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(8)::before,
+body.ui-premium .main-menu-buttons .menu-btn:nth-child(9)::before { flex: 0 0 22px; width: 22px; height: 22px; }
+body.ui-premium .main-menu-buttons:not([style*="none"]) { display: grid !important; }
