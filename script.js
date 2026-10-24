@@ -771,6 +771,7 @@ function showMainMenu() {
   document.getElementById('overlay').style.display = 'none';
   stopFireworks();
   document.getElementById('mainMenuOverlay').classList.remove('hidden');
+  document.body.classList.remove('in-lobby');
   // Sem identificação ainda: coloca o cursor pronto no campo de nome,
   // já que é a primeira coisa que faz sentido o jogador fazer.
   if (!playerName) {
@@ -780,6 +781,7 @@ function showMainMenu() {
 
 function hideMainMenu() {
   document.getElementById('mainMenuOverlay').classList.add('hidden');
+  document.body.classList.add('in-lobby');
 }
 
 function revealGameplayControls() {

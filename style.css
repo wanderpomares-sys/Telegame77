@@ -2008,3 +2008,97 @@ body.ui-premium .shop-featured .shop-card { flex-wrap: wrap; }
 body.ui-premium .shop-featured .shop-preview { flex: 0 0 38%; margin-top: 0; }
 body.ui-premium .shop-featured .shop-card-name { flex: 1 1 0; min-width: 0; font-size: 18px; }
 body.ui-premium .shop-featured .shop-action, body.ui-premium .shop-featured .shop-status { flex: 1 1 100%; width: 100%; max-width: 100%; margin: 0; }
+
+/* ======================================================================
+   LOBBY (2ª tela): layout próprio — cartão do jogador, cartões de modo,
+   ações em blocos, controles segmentados e fundo "pôr do sol sintético".
+   ====================================================================== */
+body.ui-premium.in-lobby {
+  background-color: #12071f;
+  background-image:
+    radial-gradient(900px 520px at 85% -5%, rgba(255,95,160,.38), transparent 60%),
+    radial-gradient(800px 600px at -10% 105%, rgba(255,160,40,.30), transparent 62%),
+    radial-gradient(700px 500px at 50% 50%, rgba(110,60,220,.22), transparent 70%);
+  background-attachment: fixed;
+}
+body.ui-premium.in-lobby .console-body { }
+body.ui-premium .profile-row, body.ui-premium .gameplay-controls {
+  position: relative; border-radius: 22px; padding: 14px; margin-top: 12px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,0) 40%),
+    repeating-linear-gradient(60deg, rgba(255,255,255,.035) 0 1px, transparent 1px 22px),
+    rgba(20,10,40,.72);
+  border: 1px solid rgba(255,130,200,.28);
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+/* Cartão do jogador */
+body.ui-premium .profile-info { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+body.ui-premium .profile-info .profile-name { order: 1; flex: 1 1 auto; min-width: 0; font-size: 18px; color: #fff; text-shadow: none; }
+body.ui-premium .profile-info .coin-display { order: 2; padding: 6px 12px; border-radius: 99px; background: rgba(255,198,26,.14); border: 1px solid rgba(255,198,26,.55); }
+body.ui-premium .profile-info .trophy-case { order: 5; flex: 1 1 100%; display: flex; gap: 8px; }
+body.ui-premium .profile-info .champ-btn { order: 3; --dp: 0px; flex: 0 0 40px; width: 40px; height: 40px; padding: 0; font-size: 0; border-radius: 50%;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.22); box-shadow: none; color: #fff; position: relative; text-shadow: none; }
+body.ui-premium .profile-info .champ-btn::before { content: ''; position: absolute; inset: 9px; background: currentColor;
+  -webkit-mask: var(--ico) center/contain no-repeat; mask: var(--ico) center/contain no-repeat; }
+body.ui-premium .profile-info .champ-btn:active { transform: scale(.92); }
+body.ui-premium #statsBtn { --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z'/></svg>"); color: #7ee7ff !important; }
+body.ui-premium #achievementsBtn { --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2l3 7 7 .6-5.3 4.6 1.6 7L12 17.800 5.700 21.200l1.600-7L2 9.600 9 9z'/></svg>"); color: #ffd45c !important; }
+body.ui-premium #logoutBtn { --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M10 17l5-5-5-5v10zM19 3H5a2 2 0 00-2 2v4h2V5h14v14H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z'/></svg>"); color: #ff9aa8 !important; }
+
+/* Controles: modos primeiro */
+body.ui-premium .gameplay-controls { display: flex; flex-direction: column; gap: 14px; }
+body.ui-premium .gameplay-controls > * { margin: 0; }
+body.ui-premium .controls-row { order: 1; } body.ui-premium .champ-row { order: 2; } body.ui-premium .champ-panel { order: 2; }
+body.ui-premium #targetRow { order: 3; } body.ui-premium #practiceDifficultyRow { order: 4; } body.ui-premium #difficultyRow { order: 5; }
+body.ui-premium .instructions { order: 9; font-size: 12px; opacity: .7; }
+
+/* Cartões de modo (2x2) */
+body.ui-premium .game-select { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+body.ui-premium .gameplay-controls .dial-btn {
+  position: relative; display: flex; align-items: flex-end; justify-content: flex-start; text-align: left;
+  min-height: 88px; padding: 12px; border-radius: 18px; overflow: hidden; font-size: 16px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase;
+  color: #fff; border: 1px solid rgba(255,255,255,.18); box-shadow: 0 6px 16px rgba(0,0,0,.4); text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  background: var(--art), #1c1236;
+}
+body.ui-premium .gameplay-controls .dial-btn::after { content: ''; position: absolute; right: -6px; top: -4px; width: 62px; height: 62px; background: rgba(255,255,255,.28);
+  -webkit-mask: var(--mi) center/contain no-repeat; mask: var(--mi) center/contain no-repeat; transform: rotate(-12deg); }
+body.ui-premium .gameplay-controls .dial-btn .mini-trophy { position: absolute; right: 10px; bottom: 10px; margin: 0; width: 20px; height: 20px; }
+body.ui-premium .gameplay-controls .dial-btn.active { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 22px var(--glow), 0 8px 18px rgba(0,0,0,.5); transform: translateY(-2px); filter: none; }
+body.ui-premium .gameplay-controls .dial-btn:not(.active) { filter: saturate(.55) brightness(.8); }
+body.ui-premium .gameplay-controls .dial-btn[data-mode="paredao"] { --glow: rgba(255,140,60,.8); --art: linear-gradient(150deg,#ff8a3d,#b83a1a 70%);
+  --mi: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 4h9v4H2zM13 4h9v4h-9zM2 10h5v4H2zM9 10h6v4H9zM17 10h5v4h-5zM2 16h9v4H2zM13 16h9v4h-9z'/></svg>"); }
+body.ui-premium .gameplay-controls .dial-btn[data-mode="tenis"] { --glow: rgba(170,255,70,.8); --art: linear-gradient(150deg,#9be83a,#1f7a3a 75%);
+  --mi: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill-rule='evenodd' d='M12 2a10 10 0 100 20 10 10 0 000-20zm0 2c1.800 0 3.500.6 4.900 1.600C15.700 7.100 15 9.400 15 12s.7 4.900 1.900 6.400A7.950 7.950 0 0112 20c-1.800 0-3.500-.6-4.900-1.600C8.300 16.900 9 14.600 9 12s-.7-4.900-1.900-6.400A7.950 7.950 0 0112 4z'/></svg>"); }
+body.ui-premium .gameplay-controls .dial-btn[data-mode="futebol"] { --glow: rgba(60,190,255,.8); --art: linear-gradient(150deg,#2fb4ff,#1448b8 75%);
+  --mi: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill-rule='evenodd' d='M12 2a10 10 0 100 20 10 10 0 000-20zm0 6l3.800 2.800-1.400 4.500H9.600l-1.400-4.500z'/></svg>"); }
+body.ui-premium .gameplay-controls .dial-btn[data-mode="barreira"] { --glow: rgba(255,210,40,.8); --art: repeating-linear-gradient(45deg,#ffcf1f 0 12px,#2a2a33 12px 24px);
+  --mi: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 5h20v5H2zM2 14h20v5H2zM5 10h2v4H5zM17 10h2v4h-2z'/></svg>"); }
+body.ui-premium .gameplay-controls .dial-btn[data-mode="barreira"] { text-shadow: 0 0 6px #000, 0 2px 4px #000; }
+
+/* Ações em blocos */
+body.ui-premium .champ-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+body.ui-premium .gameplay-controls .champ-row .champ-btn {
+  --dp: 0px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 74px; padding: 10px 4px; width: 100%;
+  font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; text-align: center; white-space: normal; line-height: 1.15;
+  border-radius: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--ac) 22%, transparent), rgba(255,255,255,.03));
+  border: 1px solid color-mix(in srgb, var(--ac) 70%, transparent); color: #fff; box-shadow: inset 0 -3px 0 var(--ac); text-shadow: none;
+}
+body.ui-premium .gameplay-controls .champ-row .champ-btn::before { content: ''; width: 24px; height: 24px; background: var(--ac); -webkit-mask: var(--ico) center/contain no-repeat; mask: var(--ico) center/contain no-repeat; }
+body.ui-premium .gameplay-controls .champ-row .champ-btn:active { transform: scale(.95); }
+body.ui-premium #practiceBtn { --ac: #5ee7ff; --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 2v11h3v9l7-12h-4l4-8z'/></svg>"); }
+body.ui-premium #champBtn { --ac: #ffc61a; --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M19 5h-2V3H7v2H5c-1.100 0-2 .9-2 2v1c0 2.550 1.920 4.630 4.390 4.940.63 1.500 1.980 2.630 3.610 2.960V19H7v2h10v-2h-4v-3.100c1.630-.33 2.980-1.460 3.610-2.960C19.080 12.630 21 10.550 21 8V7c0-1.100-.9-2-2-2zM5 8V7h2v3.820C5.840 10.400 5 9.300 5 8zm14 0c0 1.300-.84 2.400-2 2.820V7h2v1z'/></svg>"); }
+body.ui-premium #specialModesBtn { --ac: #c08bff; --ico: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M21 6H3c-1.100 0-2 .9-2 2v8c0 1.100.9 2 2 2h18c1.100 0 2-.9 2-2V8c0-1.100-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.500 2c-.8 0-1.500-.7-1.500-1.500s.7-1.500 1.500-1.500 1.500.7 1.500 1.500-.7 1.500-1.500 1.500zm4-3c-.8 0-1.500-.7-1.500-1.500S18.700 9 19.500 9s1.500.7 1.500 1.500-.7 1.500-1.500 1.500z'/></svg>"); }
+
+/* Controles segmentados */
+body.ui-premium .gameplay-controls .target-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0; padding: 0; margin: 0; }
+body.ui-premium .gameplay-controls .target-label { flex: 1 1 100%; margin: 0 0 6px 2px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #ffb3d9; font-weight: 800; }
+body.ui-premium .gameplay-controls .target-btn { flex: 1 1 0; margin: 0; border-radius: 0; padding: 11px 4px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-left-width: 0; box-shadow: none; font-size: 13px; text-align: center; filter: none; }
+body.ui-premium .gameplay-controls .target-btn:first-of-type { border-left-width: 1px; border-radius: 12px 0 0 12px; }
+body.ui-premium .gameplay-controls .target-btn:last-of-type { border-radius: 0 12px 12px 0; }
+body.ui-premium .gameplay-controls .target-btn.active { background: linear-gradient(180deg,#ff7ab8,#e0357f); border-color: #ff9fcb; color: #fff; box-shadow: 0 0 14px rgba(255,90,160,.55); text-shadow: 0 1px 2px rgba(0,0,0,.4); position: relative; z-index: 1; }
+body.ui-premium .gameplay-controls { display: flex !important; }
+body.ui-premium .profile-info .profile-name { flex: 1 1 calc(100% - 165px); }
+body.ui-premium .profile-info .trophy-case { flex: 1 1 0; order: 5; }
+body.ui-premium .profile-info .coin-display { order: 6; }
+body.ui-premium .gameplay-controls .target-btn { align-self: stretch; }
