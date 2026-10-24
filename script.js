@@ -3045,6 +3045,7 @@ window.addEventListener('pageshow', () => {
  * de nada aqui.
  */
 function applyTranslations() {
+  if (typeof GameI18nDom !== 'undefined') GameI18nDom.setLang(GameI18n.getLang());
   const t = GameI18n.t;
 
   // Botões do menu principal (usa o data-menu-action como parte da chave)

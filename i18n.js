@@ -220,6 +220,12 @@ const GameI18n = (function () {
   async function load() {
     const saved = await GameStorage.getValue(storageKey());
     if (saved && STRINGS[saved]) currentLang = saved;
+    else {
+      // Primeira vez: usa o idioma do aparelho. Português e espanhol têm tradução própria;
+      // qualquer outro idioma abre em inglês (padrão internacional).
+      const dev = String((typeof navigator !== 'undefined' && (navigator.language || (navigator.languages || [])[0])) || 'pt').toLowerCase().slice(0, 2);
+      currentLang = dev === 'pt' ? 'pt' : dev === 'es' ? 'es' : 'en';
+    }
     return currentLang;
   }
 
