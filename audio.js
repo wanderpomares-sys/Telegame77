@@ -227,7 +227,7 @@ const GameAudio = (function () {
     musicSrc = audioCtx.createBufferSource(); musicGain = audioCtx.createGain();
     musicSrc.buffer = musicBuf; musicSrc.loop = true;
     musicGain.gain.setValueAtTime(0, audioCtx.currentTime);
-    musicGain.gain.linearRampToValueAtTime(0.35, audioCtx.currentTime + 1.2);
+    musicGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 1.2);
     musicSrc.connect(musicGain); musicGain.connect(audioCtx.destination); musicSrc.start();
   }
   function saveMusicPref() { try { localStorage.setItem('tg-music', musicEnabled ? '1' : '0'); } catch (e) { /* ok */ } }
@@ -248,6 +248,13 @@ const GameAudio = (function () {
       try { musicGain.gain.cancelScheduledValues(0); musicSrc.stop(); } catch (e) { /* ok */ }
       musicSrc = null;
     }
+  }
+
+  /** Deixa a música mais acelerada conforme a partida esquenta (0 = calma, 1 = no máximo). */
+  function setMusicIntensity(x) {
+    if (!musicSrc || !audioCtx) return;
+    const rate = 1 + 0.14 * Math.max(0, Math.min(1, x));
+    try { musicSrc.playbackRate.setTargetAtTime(rate, audioCtx.currentTime, 0.6); } catch (e) { /* ok */ }
   }
 
   function toggleMusic() {
@@ -274,7 +281,7 @@ const GameAudio = (function () {
     playRoundWin, playRoundLose, playTrophyFanfare, playAchievementUnlock, playChampionshipStart,
     playMenuNavigate, playMenuConfirm, playCoin, playToggleOn, playToggleOff,
     isSoundEnabled, setSoundEnabled, toggleSound, setSoundPack,
-    startMusic, stopMusic, toggleMusic, isMusicEnabled,
+    startMusic, stopMusic, toggleMusic, setMusicIntensity, isMusicEnabled,
     vibrate,
   };
 })();

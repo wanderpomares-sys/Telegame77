@@ -1394,7 +1394,7 @@ function showCreditsOverlay() {
       <div>${t('credits.body')}</div>
       <div>${t('credits.criadoPor')} <b>Wander Pomares</b>.</div>
       <div>${t('credits.feitoCom')}</div>
-      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0. Música de fundo original criada para o jogo.</div>
+      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0. Música de fundo (rock) original criada para o jogo.</div>
     </div>`;
 }
 
@@ -2561,6 +2561,7 @@ function awardPoint(scorer) {
     p2.score++;
   }
 
+  GameAudio.setMusicIntensity(0);
   rallyHits = 0; // novo rally começa "fresco"
 
   updateScore();
@@ -2614,6 +2615,7 @@ function bounceOffPaddle(paddle, paddleX, isLeftPaddle) {
   if (isLeftPaddle) {
     playerHitBias = playerHitBias * 0.85 + clampedHit * 0.15;
   }
+  GameAudio.setMusicIntensity(Math.min(1, (rallyHits + 1) / 14));
   rallyHits++; // rally fica mais disputado a cada troca (ver rallyFocusFactor)
 
   // Ângulo de saída: até ~55° a partir da horizontal
