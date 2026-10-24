@@ -2498,3 +2498,14 @@ body.ui-premium .touch-controls .quick-start-row #startBtn { grid-column: 1 / -1
 body.ui-premium .touch-controls .quick-start-row { grid-template-columns: repeat(3, 1fr); gap: 6px; }
 body.ui-premium .touch-controls .quick-start-row .start-btn { font-size: 10px !important; letter-spacing: .05em; }
 body.ui-premium .touch-controls .quick-start-row #startBtn { font-size: 13px !important; letter-spacing: .12em; }
+
+/* botão de música fixo no topo */
+.top-music { all: unset; box-sizing: border-box; position: fixed; z-index: 70; top: calc(env(safe-area-inset-top, 0px) + 10px); right: 12px; height: 38px; padding: 0 12px 0 10px; display: flex; align-items: center; gap: 7px; border-radius: 20px; cursor: pointer;
+  background: rgba(10,10,20,.78); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid #00ff88; color: #00ff88; box-shadow: 0 0 14px rgba(0,255,136,.45); font: 700 10px 'Space Grotesk', system-ui, sans-serif; letter-spacing: .1em; -webkit-tap-highlight-color: transparent; }
+.top-music .lb-svg { width: 18px; height: 18px; }
+.top-music .tm-x { opacity: 0; }
+.top-music.off { border-color: rgba(255,255,255,.3); color: rgba(255,255,255,.75); box-shadow: none; }
+.top-music.off .tm-x { opacity: 1; }
+.top-music:active { transform: scale(.95); }
+body.ui-premium .touch-controls .quick-start-row { grid-template-columns: repeat(2, 1fr); }
+body.ui-premium:not(.in-lobby) .lb-header { padding-top: 58px; }

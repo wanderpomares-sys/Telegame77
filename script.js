@@ -194,7 +194,7 @@ function vibrate(pattern) { GameAudio.vibrate(pattern); }
 
 function refreshMusicBtn() {
   const b = document.getElementById('musicBtn');
-  if (b) { const on = GameAudio.isMusicEnabled(); b.classList.toggle('off', !on); b.textContent = on ? 'MÚSICA' : 'MÚSICA OFF'; }
+  if (b) { const on = GameAudio.isMusicEnabled(); b.classList.toggle('off', !on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); const t = b.querySelector('.tm-t'); if (t) t.textContent = on ? 'MÚSICA ON' : 'MÚSICA OFF'; }
 }
 document.getElementById('musicBtn').addEventListener('click', () => {
   GameAudio.ensureAudio();
