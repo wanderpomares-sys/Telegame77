@@ -2277,7 +2277,7 @@ body.ui-premium .overlay .overlay-title {
   text-shadow: 0 0 10px rgba(0,245,255,.7), 0 0 26px rgba(141,123,255,.55); background: none; -webkit-text-fill-color: #fff; filter: none; line-height: 1.4;
 }
 body.ui-premium .overlay .overlay-title::after { content: 'VINTAGE · 1977'; display: block; margin-top: 4px; font: 400 8px var(--lb-mono); letter-spacing: .2em; color: rgba(255,255,255,.4); text-shadow: none; }
-body.ui-premium .lx-chip { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px); right: 16px; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 5px; border-radius: 99px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
+body.ui-premium .lx-chip { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 18px); right: 140px; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 5px; border-radius: 99px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); }
 body.ui-premium .lx-chip .lb-avatar { width: 22px; height: 22px; font-size: 10px; }
 body.ui-premium .lx-chip .lx-cn { font: 600 11px var(--lb-sg); max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -2509,3 +2509,7 @@ body.ui-premium .touch-controls .quick-start-row #startBtn { font-size: 13px !im
 .top-music:active { transform: scale(.95); }
 body.ui-premium .touch-controls .quick-start-row { grid-template-columns: repeat(2, 1fr); }
 body.ui-premium:not(.in-lobby) .lb-header { padding-top: 58px; }
+.achievement-toast-icon { display: grid; place-items: center; width: 40px; height: 40px; font-size: 0; color: #ffcc33; }
+.achievement-toast-icon .lb-svg { width: 30px; height: 30px; }
+.achievement-toast { top: calc(env(safe-area-inset-top, 0px) + 58px) !important; }
+body.ui-premium .lx-chip { display: none !important; }

@@ -775,8 +775,8 @@ function showAchievementToast(def) {
   clearTimeout(achievementToastTimer);
   clearTimeout(achievementToastHideTimer);
   toast.style.visibility = 'visible';
-  document.getElementById('achievementToastIcon').textContent = def.icon;
-  document.getElementById('achievementToastName').textContent = def.coins ? `${def.name} · +${def.coins} 🪙` : def.name;
+  document.getElementById('achievementToastIcon').innerHTML = lxIcon(LXI.trophy);
+  document.getElementById('achievementToastName').textContent = def.coins ? `${def.name} · +${def.coins}` : def.name;
   toast.classList.add('show');
   achievementToastTimer = setTimeout(() => {
     toast.classList.remove('show');
@@ -1347,11 +1347,6 @@ function showSettingsOverlay() {
   if (outBtn) outBtn.addEventListener('click', () => { hideOverlay(); logout(); showMainMenu(); });
 
   const acts = [{ label: t('common.voltarMenu').replace(/^[^\p{L}]+/u, '').toUpperCase(), back: true, onclick: () => { hideOverlay(); showMainMenu(); } }];
-  if (playerName) {
-    acts.push({ label: '+500 MOEDAS (TESTE)', secondary: true, onclick: () => {
-      GameCoins.earn(500); GameAudio.playCoin(); updateCoinDisplay(); showSettingsOverlay();
-    } });
-  }
   lxActions(acts);
 
   lxShow();
@@ -1590,7 +1585,7 @@ function awardWinRewards(baseCoins) {
   if (dailyDone) {
     const status = GameCoins.getDailyStatus();
     GameAudio.playCoin();
-    showAchievementToast({ icon: '🎯', name: `Desafio diário completo! +${status.reward} 🪙`, coins: 0 });
+    showAchievementToast({ icon: '', name: `Desafio diário completo! +${status.reward} moedas`, coins: 0 });
   }
 
   // XP e nível: sobe junto com as moedas, na mesma proporção da vitória.
@@ -1603,7 +1598,7 @@ function awardWinRewards(baseCoins) {
     updateProfileUI();
     GameAudio.playAchievementUnlock();
     vibrate([20, 40, 20]);
-    showAchievementToast({ icon: '⭐', name: `Subiu pro nível ${info.level}! +${bonus} 🪙`, coins: 0 });
+    showAchievementToast({ icon: '', name: `Subiu pro nível ${info.level}! +${bonus} moedas`, coins: 0 });
   }
 }
 
@@ -1930,7 +1925,7 @@ async function handleSpecialModeWin() {
     GameCoins.earn(150);
     GameAudio.playCoin();
     updateCoinDisplay();
-    showAchievementToast({ icon: '💀', name: 'Modo Impossível vencido! +150 🪙', coins: 0 });
+    showAchievementToast({ icon: '', name: 'Modo Impossível vencido! +150 moedas', coins: 0 });
   } else if (specialMode === 'desafio_diario') {
     const already = await isDailyChallengeCompletedToday();
     if (!already) {
@@ -1938,7 +1933,7 @@ async function handleSpecialModeWin() {
       GameCoins.earn(80);
       GameAudio.playCoin();
       updateCoinDisplay();
-      showAchievementToast({ icon: '🎯', name: 'Desafio Diário concluído! +80 🪙', coins: 0 });
+      showAchievementToast({ icon: '', name: 'Desafio Diário concluído! +80 moedas', coins: 0 });
     }
   }
 }
@@ -1953,8 +1948,8 @@ function showSpecialModesOverlay() {
     { icon: '🧟', name: 'Sobrevivência', desc: `${SURVIVAL_STARTING_LIVES} vidas, dificuldade cresce a cada ponto seu. Até onde você chega?`, action: startSurvivalMode },
     { icon: '⏱', name: 'Contra o Tempo', desc: `${TIME_ATTACK_SECONDS} segundos pra marcar o máximo de pontos possível.`, action: startTimeAttackMode },
     { icon: '♾️', name: 'Treino Infinito', desc: 'Sem placar, sem fim — só pra pegar o jeito da raquete.', action: startInfiniteTraining },
-    { icon: '💀', name: 'Modo Impossível', desc: 'CPU no limite absoluto. Vencer aqui paga bônus de 150 moedas.', action: startImpossibleMode },
-    { icon: '🎯', name: 'Desafio Diário', desc: 'O mesmo desafio pra todo mundo hoje. Só paga bônus na primeira vez do dia.', action: startDailyChallengeMode },
+    { icon: '', name: 'Modo Impossível', desc: 'CPU no limite absoluto. Vencer aqui paga bônus de 150 moedas.', action: startImpossibleMode },
+    { icon: '', name: 'Desafio Diário', desc: 'O mesmo desafio pra todo mundo hoje. Só paga bônus na primeira vez do dia.', action: startDailyChallengeMode },
   ];
 
   document.getElementById('overlayMsg').innerHTML = `
@@ -2094,7 +2089,7 @@ function checkAndAwardMissions() {
     GameCoins.earn(m.reward);
     GameAudio.playCoin();
     updateCoinDisplay();
-    showAchievementToast({ icon: m.icon, name: `Missão concluída: ${m.label} +${m.reward} 🪙`, coins: 0 });
+    showAchievementToast({ icon: m.icon, name: `Missão concluída: ${m.label} +${m.reward} moedas`, coins: 0 });
   });
 }
 

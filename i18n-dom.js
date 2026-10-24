@@ -307,6 +307,12 @@ const GameI18nDom = (function () {
 
   // Textos com números/nomes variáveis: [regex em português, função(lang, match) -> texto]
   const PATTERNS = [
+    [/^desafio diário completo! \+(\d+) moedas$/i, (L, m) => L === 'en' ? `Daily challenge complete! +${m[1]} coins` : `¡Desafío diario completado! +${m[1]} monedas`],
+    [/^subiu pro nível (\d+)! \+(\d+) moedas$/i, (L, m) => L === 'en' ? `Level up! You reached level ${m[1]}! +${m[2]} coins` : `¡Subiste al nivel ${m[1]}! +${m[2]} monedas`],
+    [/^modo impossível vencido! \+(\d+) moedas$/i, (L, m) => L === 'en' ? `Impossible Mode beaten! +${m[1]} coins` : `¡Modo imposible superado! +${m[1]} monedas`],
+    [/^desafio diário concluído! \+(\d+) moedas$/i, (L, m) => L === 'en' ? `Daily Challenge done! +${m[1]} coins` : `¡Desafío diario hecho! +${m[1]} monedas`],
+    [/^missão concluída: (.+) \+(\d+) moedas$/i, (L, m, t) => (L === 'en' ? 'Mission complete: ' : 'Misión completada: ') + t(m[1]) + ' +' + m[2] + (L === 'en' ? ' coins' : ' monedas')],
+    [/^(.+) · \+(\d+)$/, (L, m, t) => t(m[1]) + ' · +' + m[2]],
     [/^(\d+) \/ (\d+)$/, null],
     [/^(\d+) jogos?$/i, (L, m) => m[1] + (L === 'en' ? (m[1] === '1' ? ' game' : ' games') : (m[1] === '1' ? ' juego' : ' juegos'))],
     [/^(\d+) partidas? • (\d+)% vitórias$/i, (L, m) => L === 'en' ? `${m[1]} matches • ${m[2]}% wins` : `${m[1]} partidas • ${m[2]}% victorias`],
