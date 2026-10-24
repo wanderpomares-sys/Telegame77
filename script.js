@@ -53,6 +53,7 @@ function startLoop() {
 
 /** Pausa o loop do jogo (não reseta placar nem posição, só para a física). */
 function pauseLoop() {
+  if (typeof cancelCountdown === 'function') cancelCountdown();
   running = false;
   document.getElementById('startBtn').textContent = 'Iniciar';
 }
@@ -132,7 +133,9 @@ document.querySelectorAll('#practiceDifficultyRow .target-btn').forEach(btn => {
     document.querySelectorAll('#practiceDifficultyRow .target-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     practiceDifficulty = btn.dataset.practiceDifficulty;
-    applyPracticeDifficulty();
+    
+
+applyPracticeDifficulty();
     p1.score = 0;
     p2.score = 0;
     resetRound();
@@ -299,9 +302,13 @@ document.getElementById('startBtn').addEventListener('click', () => {
   ensureAudio();
   if (running) {
     pauseLoop();
+  } else if (countdownRunning) {
+    cancelCountdown(); // tocar de novo durante a contagem cancela
   } else {
-    playStartSound();
-    startLoop();
+    // Começo "do zero" (bola parada no centro): contagem 3-2-1. Retomar uma pausa no meio do jogo é imediato.
+    const fresh = Math.abs(ball.x - W / 2) < 0.01 && Math.abs(ball.y - H / 2) < 0.01;
+    if (fresh) startWithCountdown();
+    else { playStartSound(); startLoop(); }
   }
 });
 
@@ -413,7 +420,7 @@ function logout() {
   updateMenuGate();
   applyCosmetics({
     ballColor: '#c8e6c0', paddleColor: '#c8e6c0', screenBg: '#0c0e0a', effectsLevel: 'padrao', soundPack: 'classico',
-    font: "'VT323', 'Courier New', monospace", letterSpacing: 'normal',
+    font: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif", letterSpacing: 'normal',
     cssVars: { '--wood-dark': '#4a3324', '--wood-mid': '#6b4a30', '--wood-light': '#8a6440', '--panel-black': '#1a1a1a', '--frame-color': '#222222' },
   });
 }
@@ -976,6 +983,10 @@ function renderSettingsBody() {
       <div>${enabled ? t('settings.somLigado') : t('settings.somDesligado')}</div>
       <div>${musicOn ? t('settings.musicaLigada') : t('settings.musicaDesligada')}</div>
       <div>${t('settings.jogadorAtual')}: <b>${playerName || t('settings.nenhum')}</b></div>
+      <div style="margin-top:10px;">${themeLabel('title')}:</div>
+      <div class="target-row" id="themeRow" style="margin-top:6px;">
+        ${['premium', 'pixel'].map((n) => `<button class="target-btn${(n === 'pixel') === document.body.classList.contains('ui-pixel') ? ' active' : ''}" data-uitheme="${n}">${themeLabel(n)}</button>`).join('')}
+      </div>
       <div style="margin-top:10px;">${gfxLabel('title')}:</div>
       <div class="target-row" id="gfxRow" style="margin-top:6px;">
         ${['auto', 'alto', 'leve', 'classico'].map((p) => `<button class="target-btn${(typeof Game3D !== 'undefined' && Game3D.getPref() === p) ? ' active' : ''}" data-gfx="${p}">${gfxLabel(p)}</button>`).join('')}
@@ -988,6 +999,20 @@ function renderSettingsBody() {
         }).join('')}
       </div>
     </div>`;
+}
+
+/** Tema visual da interface: 'premium' (padrão) ou 'pixel'. */
+function applyUITheme(name) {
+  document.body.classList.toggle('ui-pixel', name === 'pixel');
+  document.body.classList.toggle('ui-premium', name !== 'pixel');
+}
+function themeLabel(key) {
+  const L = {
+    pt: { title: 'Tema', premium: 'Premium', pixel: 'Pixel Art' },
+    en: { title: 'Theme', premium: 'Premium', pixel: 'Pixel Art' },
+    es: { title: 'Tema', premium: 'Premium', pixel: 'Pixel Art' },
+  };
+  return (L[GameI18n.getLang()] || L.pt)[key];
 }
 
 /** Textos da opção de gráficos (pt/en/es). */
@@ -1006,6 +1031,16 @@ function showSettingsOverlay() {
   stopFireworks();
   document.getElementById('overlayTitle').textContent = t('settings.title');
   document.getElementById('overlayMsg').innerHTML = renderSettingsBody();
+
+  document.querySelectorAll('#themeRow [data-uitheme]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      ensureAudio();
+      GameAudio.playMenuNavigate();
+      applyUITheme(btn.dataset.uitheme);
+      await GameStorage.setValue('telegamevintage-uitheme', btn.dataset.uitheme);
+      showSettingsOverlay();
+    });
+  });
 
   document.querySelectorAll('#gfxRow [data-gfx]').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -2225,6 +2260,58 @@ function updateParticles(dtFactor) {
  * em 5 lugares diferentes dentro do step(); agora é uma função só.
  * @param {'p1'|'p2'} scorer - quem marcou
  */
+// --- Efeitos visuais de ponto/gol e contagem regressiva (só visual) -------------
+function fxEl(cls) {
+  let el = document.querySelector('.' + cls);
+  if (!el) {
+    el = document.createElement('div');
+    el.className = cls;
+    document.querySelector('.screen-frame').appendChild(el);
+  }
+  return el;
+}
+function pointBannerText(scorer) {
+  const L = {
+    pt: { goal: 'GOL!', cpuGoal: 'GOL DA CPU', point: 'PONTO!', cpu: 'CPU MARCOU', miss: 'ERROU!' },
+    en: { goal: 'GOAL!', cpuGoal: 'CPU GOAL', point: 'POINT!', cpu: 'CPU SCORES', miss: 'MISSED!' },
+    es: { goal: '¡GOL!', cpuGoal: 'GOL DE LA CPU', point: '¡PUNTO!', cpu: 'PUNTO CPU', miss: '¡FALLASTE!' },
+  };
+  const T = L[GameI18n.getLang()] || L.pt;
+  if (scorer === 'p1') return mode === 'futebol' ? T.goal : T.point;
+  if (mode === 'paredao') return T.miss;
+  return mode === 'futebol' ? T.cpuGoal : T.cpu;
+}
+function showPointBanner(scorer) {
+  const el = fxEl('fx-banner');
+  el.textContent = pointBannerText(scorer);
+  el.className = 'fx-banner ' + (scorer === 'p1' ? 'good' : 'bad');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+var countdownToken = 0;
+var countdownRunning = false;
+function cancelCountdown() { countdownToken++; countdownRunning = false; }
+function startWithCountdown() {
+  const my = ++countdownToken;
+  countdownRunning = true;
+  const seq = ['3', '2', '1', 'GO!'];
+  let i = 0;
+  const tick = () => {
+    if (my !== countdownToken) return; // cancelado
+    const el = fxEl('fx-count');
+    el.textContent = seq[i];
+    el.className = 'fx-count';
+    void el.offsetWidth;
+    el.classList.add('show');
+    beep(i < 3 ? 520 : 880, 0.1, 0.12);
+    i++;
+    if (i < seq.length) setTimeout(tick, 520);
+    else setTimeout(() => { if (my !== countdownToken) return; countdownRunning = false; playStartSound(); startLoop(); }, 380);
+  };
+  tick();
+}
+
 function awardPoint(scorer) {
   if (typeof Game3D !== 'undefined' && Game3D.isActive()) Game3D.goal(scorer, ball.x, ball.y);
   // Treino Infinito: a bola só volta pro centro, sem contar ponto nem checar fim de jogo.
@@ -2245,6 +2332,7 @@ function awardPoint(scorer) {
 
   updateScore();
   pulseScore();
+  showPointBanner(scorer);
   playScorePoint();
   vibrate(60); // pulso único e curto ao marcar/levar ponto
   resetBallToCenter(scorer);
@@ -2494,14 +2582,14 @@ function applyCosmetics(cfg) {
 }
 
 const gfxState = { mode: 'paredao', W: 0, H: 0, p1y: 0, p2y: 0, paddleH: 50, paddleW: 8, goalHalf: 45,
-  ball: null, trail: null, barrier: { gapTop: 0, gapBottom: 0 } };
+  ball: null, trail: null, barrier: { gapTop: 0, gapBottom: 0 }, s1: 0, s2: 0 };
 
 /** Entrega o estado atual do jogo pra camada 3D (Game3D). Só leitura. */
 function renderGame3D() {
   const g = gfxState;
   g.mode = mode; g.W = W; g.H = H;
   g.p1y = p1.y; g.p2y = p2.y; g.paddleH = paddleH; g.paddleW = paddleW; g.goalHalf = goalHalf;
-  g.ball = ball; g.trail = ballTrail;
+  g.ball = ball; g.trail = ballTrail; g.s1 = p1.score; g.s2 = p2.score;
   if (mode === 'barreira') {
     const gc = H / 2 + barrierGapAmplitude * Math.sin(barrierPhase);
     g.barrier.gapTop = gc - barrierGapHeight / 2;
@@ -2728,7 +2816,8 @@ function applyTranslations() {
   document.querySelectorAll('[data-menu-action]').forEach((btn) => {
     const key = 'menu.' + btn.dataset.menuAction;
     const translated = t(key);
-    if (translated !== key) btn.textContent = translated;
+    const txt = translated !== key ? translated : btn.textContent;
+    btn.textContent = txt.replace(/^[\p{Extended_Pictographic}\p{S}\p{P}\uFE0F\u200d\s]+/u, '').trim(); // sem emoji: o ícone vetorial vem do CSS
   });
 
   // Login (tanto o campo dentro do menu quanto o de dentro do jogo)
@@ -2751,6 +2840,7 @@ GameRanking.load(); // ranking é global (não depende de login pra ser exibido)
 // Idioma: carrega a preferência salva (ou português, se for a primeira vez)
 // e já aplica em toda a tela antes do jogador ver qualquer coisa.
 GameI18n.load().then(() => applyTranslations());
+GameStorage.getValue('telegamevintage-uitheme').then((v) => { if (v === 'pixel') applyUITheme('pixel'); }).catch(() => {});
 
 // Esconde a splash screen assim que o jogo estiver pronto pra usar.
 // Um pequeno atraso mínimo evita um "pisca" caso tudo carregue rápido demais.
@@ -2790,4 +2880,23 @@ setTimeout(() => {
   } catch (e) {
     // URL sem suporte a query params (muito improvável): ignora, jogo abre normal.
   }
+})();
+
+/* Remove emoji do início dos textos de botões: a interface usa só ícones vetoriais. */
+(function () {
+  const EMO = /^[\p{Extended_Pictographic}\p{S}\uFE0F\u200d\s]+/u;
+  let busy = false;
+  function strip() {
+    if (busy) return; busy = true;
+    document.querySelectorAll('.champ-btn, .menu-btn, .shop-tab, .start-btn, #overlayActions button').forEach(b => {
+      if (b.children.length) return;
+      const t = b.textContent;
+      if (EMO.test(t) && /[\p{L}]/u.test(t)) b.textContent = t.replace(EMO, '').trim();
+    });
+    busy = false;
+  }
+  let timer = null;
+  new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(strip, 30); })
+    .observe(document.body, { childList: true, subtree: true, characterData: true });
+  strip();
 })();

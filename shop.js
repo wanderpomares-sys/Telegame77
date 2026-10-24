@@ -78,7 +78,8 @@ const GameShop = (function () {
     { id: 'frame_neon', category: 'frame', name: 'Néon', price: 130, frameColor: '#5fc9ff' },
 
     // --- Fonte (tipografia da interface) — todas gratuitas, é só estética ---
-    { id: 'font_default', category: 'font', name: 'Pixel Art', price: 0, font: "'VT323', 'Courier New', monospace" },
+    { id: 'font_default', category: 'font', name: 'Moderna', price: 0, font: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif" },
+    { id: 'font_pixel', category: 'font', name: 'Pixel Art', price: 0, font: "'VT323', 'Courier New', monospace" },
     { id: 'font_courier', category: 'font', name: 'Courier Clássica', price: 0, font: "'Courier New', monospace" },
     { id: 'font_terminal', category: 'font', name: 'Terminal', price: 0, font: "Consolas, Menlo, 'Lucida Console', monospace" },
     { id: 'font_digital', category: 'font', name: 'Digital Retrô', price: 0, font: "'Courier New', monospace", letterSpacing: '2px' },

@@ -47,6 +47,7 @@ const Game3D = (function () {
   let trailPts = null, partPts = null, rings = [], barrierTop = null, barrierBot = null, wallBlock = null;
   let fillLights = [];
   let lastPaddleH = -1;
+  let scoreCtx = null, scoreTex = null, lastS1 = -1, lastS2 = -1;
 
   // câmera
   let camBase = null, camTarget = null; // criados em create() (THREE pode não existir)
@@ -356,6 +357,12 @@ const Game3D = (function () {
     back2.position.set(-50, 9, -8); back2.rotation.y = Math.PI / 2.6; arena.add(back2);
     const back3 = back2.clone(); back3.position.x = 50; back3.rotation.y = -Math.PI / 2.6; arena.add(back3);
 
+    // placar holográfico (atrás da quadra)
+    const sc = mk(512, 192); scoreCtx = sc.getContext('2d'); scoreTex = new THREE.CanvasTexture(sc);
+    scoreTex.encoding = THREE.sRGBEncoding; lastS1 = lastS2 = -1;
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(17, 6.4), new THREE.MeshBasicMaterial({ map: scoreTex, transparent: true, depthWrite: false, fog: false }));
+    board.position.set(0, 6.6, -ch / 2 - 6); board.rotation.x = -0.28; arena.add(board);
+
     // ----- elementos específicos
     wallBlock = barrierTop = barrierBot = null;
     if (mode === 'paredao') {
@@ -517,13 +524,41 @@ const Game3D = (function () {
     shake = 1;
   }
 
+  // --------------------------------------------------------- placar 3D
+  function drawScore(s1, s2) {
+    if (!scoreCtx) return;
+    const g = scoreCtx, w = 512, h = 192;
+    const pal = PALETTE[currentMode] || PALETTE.paredao;
+    g.clearRect(0, 0, w, h);
+    const rr = (x, y, ww, hh, rad) => { g.beginPath(); g.moveTo(x + rad, y); g.arcTo(x + ww, y, x + ww, y + hh, rad); g.arcTo(x + ww, y + hh, x, y + hh, rad); g.arcTo(x, y + hh, x, y, rad); g.arcTo(x, y, x + ww, y, rad); g.closePath(); };
+    const bg = g.createLinearGradient(0, 0, 0, h);
+    bg.addColorStop(0, 'rgba(8,14,40,0.88)'); bg.addColorStop(1, 'rgba(2,5,18,0.92)');
+    rr(10, 10, w - 20, h - 20, 26); g.fillStyle = bg; g.fill();
+    g.lineWidth = 4; g.strokeStyle = 'rgba(255,201,77,0.9)'; g.stroke();
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = '800 26px "Segoe UI", Roboto, sans-serif';
+    g.fillStyle = pal.p1; g.fillText('VOCÊ', 128, 40);
+    g.fillStyle = pal.p2; g.fillText('CPU', 384, 40);
+    g.font = '900 100px "Segoe UI", Roboto, sans-serif';
+    g.shadowBlur = 22;
+    g.shadowColor = pal.p1; g.fillStyle = '#ffffff'; g.fillText(String(s1).padStart(2, '0'), 128, 112);
+    g.shadowColor = pal.p2; g.fillText(String(s2).padStart(2, '0'), 384, 112);
+    g.shadowBlur = 0;
+    g.fillStyle = 'rgba(255,255,255,0.7)'; g.font = '900 70px "Segoe UI", Roboto, sans-serif'; g.fillText(':', 256, 108);
+    if (scoreTex) scoreTex.needsUpdate = true;
+  }
+
   // -------------------------------------------------------------- render
+  function sizeTarget() {
+    if (showcaseOn && consoleBody) return { w: consoleBody.clientWidth, h: consoleBody.clientHeight };
+    return { w: baseCanvas.clientWidth, h: baseCanvas.clientHeight };
+  }
   function resize() {
     if (!renderer || !baseCanvas || !frameEl) return;
-    const w = baseCanvas.clientWidth, h = baseCanvas.clientHeight;
+    const sz = sizeTarget(), w = sz.w, h = sz.h;
     if (!w || !h) return;
-    glCanvas.style.left = baseCanvas.offsetLeft + 'px';
-    glCanvas.style.top = baseCanvas.offsetTop + 'px';
+    glCanvas.style.left = (showcaseOn ? 0 : baseCanvas.offsetLeft) + 'px';
+    glCanvas.style.top = (showcaseOn ? 0 : baseCanvas.offsetTop) + 'px';
     glCanvas.style.width = w + 'px';
     glCanvas.style.height = h + 'px';
     const dpr = Math.min(window.devicePixelRatio || 1, quality === 'alto' ? 2 : 1.25);
@@ -535,6 +570,7 @@ const Game3D = (function () {
   function render(state) {
     if (!active) return;
     lastState = state;
+    if (showcaseOn) { if (menuVisible()) return; exitShowcase(); }
     const now = performance.now();
     const dt = Math.min(0.05, Math.max(0.001, (now - (lastNow || now)) / 1000));
     lastNow = now; lastRender = now;
@@ -550,6 +586,7 @@ const Game3D = (function () {
   function drawFrame(st, dt) {
     const W = st.W, H = st.H;
     const bx = (st.ball.x - W / 2) * S, bz = (st.ball.y - H / 2) * S;
+    if (st.s1 !== lastS1 || st.s2 !== lastS2) { lastS1 = st.s1; lastS2 = st.s2; drawScore(st.s1 || 0, st.s2 || 0); }
 
     // raquetes
     const ph = st.paddleH * S;
@@ -647,6 +684,15 @@ const Game3D = (function () {
     camTarget.z += (tz - camTarget.z) * Math.min(1, dt * 3.2);
     const t = performance.now() / 1000;
     const dolly = (1 - ease) * 9;
+    if (showcaseOn) {
+      const a = Math.sin(t * 0.21) * 0.55, hh = 24 + Math.sin(t * 0.17) * 3;
+      camera.fov = 56;
+      camera.position.set(Math.sin(a) * 40, hh, Math.cos(a) * 44 + 12);
+      camera.lookAt(0, 0, 9.5);
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      return;
+    }
     camera.position.set(
       camBase.x + camTarget.x * 0.35 + Math.sin(t * 0.35) * 0.35 + sx,
       camBase.y + dolly * 1.1 - kick * 0.35,
@@ -670,17 +716,76 @@ const Game3D = (function () {
     }
   }
 
+  // ------------------------------------------- vitrine 3D atrás do menu
+  let showcaseOn = false, consoleBody = null, scNextMode = 'paredao';
+  const scState = { mode: 'paredao', W: 400, H: 300, p1y: 125, p2y: 125, paddleH: 50, paddleW: 8, goalHalf: 45,
+    ball: { x: 120, y: 90, vx: 2.6, vy: 1.7, r: 5 }, trail: [], barrier: { gapTop: 0, gapBottom: 0 }, s1: 0, s2: 0 };
+  let scPhase = 0, scLast = 0;
+
+  function menuVisible() {
+    const menu = document.getElementById('mainMenuOverlay');
+    return !!(menu && !menu.classList.contains('hidden'));
+  }
+  function enterShowcase() {
+    consoleBody = document.getElementById('consoleBody');
+    if (!consoleBody || !glCanvas) return;
+    showcaseOn = true;
+    consoleBody.classList.add('showcase');
+    consoleBody.appendChild(glCanvas);
+    glCanvas.style.position = 'absolute'; glCanvas.style.zIndex = '3'; glCanvas.style.borderRadius = '20px';
+    const modes = ['paredao', 'tenis', 'futebol', 'barreira'];
+    scNextMode = modes[(Math.random() * modes.length) | 0];
+    scState.mode = scNextMode;
+    scState.paddleH = scNextMode === 'futebol' ? 34 : scNextMode === 'tenis' ? 65 : scNextMode === 'barreira' ? 55 : 50;
+    scState.s1 = (Math.random() * 3) | 0; scState.s2 = (Math.random() * 3) | 0;
+    scState.trail.length = 0;
+    currentMode = null; introT = 0;
+    resize();
+  }
+  function exitShowcase() {
+    showcaseOn = false;
+    if (consoleBody) consoleBody.classList.remove('showcase');
+    if (frameEl && glCanvas) { frameEl.appendChild(glCanvas); glCanvas.style.zIndex = '1'; glCanvas.style.borderRadius = ''; }
+    currentMode = null;
+    resize();
+  }
+  function tickShowcase(now) {
+    const dt = Math.min(0.05, Math.max(0.001, (now - (scLast || now)) / 1000)); scLast = now;
+    const f = dt * 60, b = scState.ball, W = scState.W, H = scState.H;
+    b.x += b.vx * f; b.y += b.vy * f;
+    if (b.y < b.r || b.y > H - b.r) { b.vy *= -1; b.y = Math.max(b.r, Math.min(H - b.r, b.y)); burst(b.x, b.y, 2); }
+    if (b.x < 24 || b.x > W - 24) { b.vx *= -1; b.x = Math.max(24, Math.min(W - 24, b.x)); burst(b.x, b.y, 4); }
+    scState.p1y += (b.y - scState.paddleH / 2 - scState.p1y) * 0.09 * f;
+    scState.p2y += (b.y - scState.paddleH / 2 - scState.p2y) * 0.07 * f;
+    scPhase += 0.02 * f;
+    const gc = H / 2 + 55 * Math.sin(scPhase);
+    scState.barrier.gapTop = gc - 35; scState.barrier.gapBottom = gc + 35;
+    scState.trail.push({ x: b.x, y: b.y }); if (scState.trail.length > 12) scState.trail.shift();
+    if (scState.mode !== currentMode || !arena) { buildArena(scState.mode, W, H); buildActors(); }
+    drawFrame(scState, dt);
+  }
+
   // --------------------------------------------------- idle (jogo pausado)
   function idleLoop() {
     idleHandle = requestAnimationFrame(idleLoop);
-    if (!active || !lastState || document.hidden) return;
+    if (!active || document.hidden) return;
     const now = performance.now();
+    const ov = document.getElementById('overlay');
+    const covered = !!(ov && ov.style.display === 'flex');
+    if (menuVisible()) {                      // menu aberto: vitrine 3D girando atrás dos botões (~30 fps)
+      if (covered) return;
+      if (now - lastIdle < 32) return;
+      lastIdle = now;
+      if (!showcaseOn) enterShowcase();
+      if (showcaseOn) tickShowcase(now);
+      return;
+    }
+    if (showcaseOn) exitShowcase();
+    if (!lastState) return;
     if (now - lastRender < 110) return;       // o jogo está rodando e já desenha sozinho
     if (now - lastIdle < 60) return;          // ~16 fps parado (economiza bateria)
     lastIdle = now;
-    const menu = document.getElementById('mainMenuOverlay');
-    const ov = document.getElementById('overlay');
-    if ((menu && !menu.classList.contains('hidden')) || (ov && ov.style.display === 'flex')) return; // tela coberta
+    if (covered) return;                      // tela coberta
     const dt = Math.min(0.05, (now - (lastNow || now)) / 1000); lastNow = now;
     drawFrame(lastState, Math.max(0.016, dt));
   }
