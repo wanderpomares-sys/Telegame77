@@ -1382,6 +1382,7 @@ function showCreditsOverlay() {
       <div>${t('credits.body')}</div>
       <div>${t('credits.criadoPor')} <b>Wander Pomares</b>.</div>
       <div>${t('credits.feitoCom')}</div>
+      <div>Sons: Interface Sounds por <b>Kenney</b> (kenney.nl), licença CC0.</div>
     </div>`;
 }
 

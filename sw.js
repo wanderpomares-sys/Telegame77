@@ -10,11 +10,25 @@
  * número da versão em CACHE_NAME abaixo — é assim que o navegador sabe que
  * precisa baixar tudo de novo em vez de usar a cópia antiga guardada.
  */
-const CACHE_VERSION = 'v40';
+const CACHE_VERSION = 'v41';
 const CACHE_NAME = 'telegamevintage-' + CACHE_VERSION;
 
 // Arquivos essenciais pro jogo abrir e rodar sem rede.
 const APP_SHELL = [
+  'sounds/click_002.mp3',
+  'sounds/confirmation_002.mp3',
+  'sounds/confirmation_003.mp3',
+  'sounds/confirmation_004.mp3',
+  'sounds/error_004.mp3',
+  'sounds/error_006.mp3',
+  'sounds/glass_003.mp3',
+  'sounds/maximize_006.mp3',
+  'sounds/open_001.mp3',
+  'sounds/pluck_001.mp3',
+  'sounds/select_002.mp3',
+  'sounds/switch_003.mp3',
+  'sounds/switch_005.mp3',
+  'sounds/tick_002.mp3',
   '.',
   'index.html',
   'style.css',

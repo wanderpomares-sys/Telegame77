@@ -67,21 +67,67 @@ const GameAudio = (function () {
     }
   }
 
+  // --- Sons reais (Kenney "Interface Sounds", licença CC0) ---------------------
+  // Carregados uma vez e tocados via Web Audio. Se algo falhar, cai no som sintetizado.
+  const SAMPLE_FILES = {
+    paddle: 'pluck_001', wall: 'tick_002', score: 'error_004', start: 'open_001',
+    win: 'confirmation_002', lose: 'error_006', trophy: 'confirmation_004', champ: 'maximize_006',
+    achieve: 'confirmation_003', nav: 'click_002', confirm: 'select_002', coin: 'glass_003',
+    on: 'switch_003', off: 'switch_005',
+  };
+  const samples = {};
+  let samplesRequested = false;
+  function loadSamples() {
+    if (samplesRequested || !audioCtx) return;
+    samplesRequested = true;
+    Object.keys(SAMPLE_FILES).forEach((key) => {
+      fetch('sounds/' + SAMPLE_FILES[key] + '.mp3')
+        .then((r) => r.arrayBuffer())
+        .then((buf) => new Promise((ok, no) => audioCtx.decodeAudioData(buf, ok, no)))
+        .then((decoded) => { samples[key] = decoded; })
+        .catch(() => { /* sem o arquivo: usa o som sintetizado */ });
+    });
+  }
+  /** Toca um som real; devolve false se ainda não estiver carregado (aí o chamador usa o sintetizado). */
+  function play(key, volume, rate) {
+    if (!soundEnabled) return true;
+    if (!ensureAudio()) return true;
+    loadSamples();
+    const buf = samples[key];
+    if (!buf) return false;
+    try {
+      const src = audioCtx.createBufferSource();
+      const gain = audioCtx.createGain();
+      src.buffer = buf;
+      let r = rate || 1, v = volume == null ? 0.7 : volume;
+      if (soundPack === 'arcade') { r *= 1.25; v *= 1.1; }
+      else if (soundPack === 'suave') { r *= 0.9; v *= 0.65; }
+      src.playbackRate.value = r;
+      gain.gain.value = Math.min(1, v);
+      src.connect(gain); gain.connect(audioCtx.destination);
+      src.start();
+      return true;
+    } catch (e) { return false; }
+  }
+
   // --- Efeitos de jogo já existentes -----------------------------------------
   // Cada efeito varia um pouco conforme o "pacote de som" equipado na loja:
   // Clássico (padrão), Suave (mais discreto) e Arcade (mais agressivo).
   function playPaddleHit() {
+    if (play('paddle', 0.8, 1 + (Math.random() * 0.12 - 0.06))) return;
     const jitter = 1 + (Math.random() * 0.08 - 0.04);
     if (soundPack === 'suave') beep(660 * jitter, 0.06, 0.08, 0, 'sine');
     else if (soundPack === 'arcade') beep(1100 * jitter, 0.04, 0.16, 0, 'sawtooth');
     else beep(880 * jitter, 0.05, 0.12, 0, 'square');
   }
   function playWallBounce() {
+    if (play('wall', 0.6, 1)) return;
     if (soundPack === 'suave') beep(330, 0.06, 0.07, 0, 'sine');
     else if (soundPack === 'arcade') beep(520, 0.04, 0.14, 0, 'square');
     else beep(440, 0.045, 0.10, 0, 'triangle');
   }
   function playScorePoint() {
+    if (play('score', 0.7, 1)) return;
     if (soundPack === 'suave') {
       beep(440, 0.12, 0.10, 0, 'sine');
       beep(260, 0.22, 0.09, 0.1, 'sine');
@@ -94,24 +140,29 @@ const GameAudio = (function () {
     }
   }
   function playStartSound() {
+    if (play('start', 0.6, 1)) return;
     beep(440, 0.05, 0.12, 0, 'sine');
     beep(660, 0.08, 0.12, 0.05, 'sine');
   }
   function playRoundWin() {
+    if (play('win', 0.8, 1)) return;
     beep(523, 0.12, 0.15, 0, 'square');
     beep(659, 0.12, 0.15, 0.12, 'square');
     beep(784, 0.18, 0.15, 0.24, 'square');
   }
   function playRoundLose() {
+    if (play('lose', 0.7, 1)) return;
     beep(392, 0.12, 0.15, 0, 'triangle');
     beep(330, 0.12, 0.15, 0.12, 'triangle');
     beep(262, 0.20, 0.15, 0.24, 'triangle');
   }
   function playTrophyFanfare() {
+    if (play('trophy', 0.9, 1)) return;
     [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.14, 0.16, i * 0.14, 'square'));
   }
   /** Som de entrada no Campeonato — mais solene que o início comum de partida. */
   function playChampionshipStart() {
+    if (play('champ', 0.8, 1)) return;
     beep(392, 0.10, 0.14, 0, 'square');
     beep(523, 0.10, 0.14, 0.10, 'square');
     beep(659, 0.20, 0.16, 0.20, 'square');
@@ -119,6 +170,7 @@ const GameAudio = (function () {
 
   // --- Efeitos novos (Fase 2 — estatísticas/conquistas) ----------------------
   function playAchievementUnlock() {
+    if (play('achieve', 0.8, 1)) return;
     beep(660, 0.09, 0.14, 0, 'sine');
     beep(880, 0.09, 0.14, 0.09, 'sine');
     beep(1175, 0.16, 0.15, 0.18, 'sine');
@@ -126,11 +178,11 @@ const GameAudio = (function () {
 
   // Reservado pra próximas partes (menu, moedas, loja) — já com o nome certo
   // pra quando a UI de menu/loja chamar, sem precisar mexer aqui de novo.
-  function playMenuNavigate() { beep(520, 0.04, 0.08, 0, 'sine'); }
-  function playMenuConfirm() { beep(660, 0.05, 0.10, 0, 'sine'); beep(880, 0.06, 0.10, 0.05, 'sine'); }
-  function playCoin() { beep(988, 0.05, 0.12, 0, 'square'); beep(1319, 0.10, 0.12, 0.05, 'square'); }
-  function playToggleOn() { beep(660, 0.05, 0.10, 0, 'sine'); }
-  function playToggleOff() { beep(330, 0.05, 0.10, 0, 'sine'); }
+  function playMenuNavigate() { if (play('nav', 0.5)) return; beep(520, 0.04, 0.08, 0, 'sine'); }
+  function playMenuConfirm() { if (play('confirm', 0.6)) return; beep(660, 0.05, 0.10, 0, 'sine'); beep(880, 0.06, 0.10, 0.05, 'sine'); }
+  function playCoin() { if (play('coin', 0.7)) return; beep(988, 0.05, 0.12, 0, 'square'); beep(1319, 0.10, 0.12, 0.05, 'square'); }
+  function playToggleOn() { if (play('on', 0.6)) return; beep(660, 0.05, 0.10, 0, 'sine'); }
+  function playToggleOff() { if (play('off', 0.6)) return; beep(330, 0.05, 0.10, 0, 'sine'); }
 
   function isSoundEnabled() { return soundEnabled; }
   function setSoundEnabled(value) { soundEnabled = value; }
