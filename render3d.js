@@ -37,6 +37,8 @@ const Game3D = (function () {
 
   let renderer = null, scene = null, camera = null;
   let glCanvas = null, frameEl = null, baseCanvas = null;
+  let crowd = null;         // torcida (instâncias animadas)
+  let cheer = 0;            // 0..1: quanto a torcida está vibrando
   let arena = null;         // grupo do cenário do modo atual
   let currentMode = null;
   let envTex = null;
@@ -426,7 +428,78 @@ const Game3D = (function () {
       barrierBot.userData.cap = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 1), capM);
       arena.add(barrierTop.userData.cap, barrierBot.userData.cap);
     }
+    buildCrowd(cw, ch, pal);
     introT = 0;
+  }
+
+
+  // ------------------------------------------------------------ torcida
+  // Arquibancadas com torcedores simples (corpo + cabeça) que balançam o tempo todo
+  // e pulam de braços erguidos quando alguém marca ponto.
+  function buildCrowd(cw, ch, pal) {
+    crowd = null;
+    const low = quality !== 'alto';
+    const rows = low ? 2 : 3;
+    const spots = []; // {x,y,z,ph,f}
+    const stepMat = new THREE.MeshLambertMaterial({ color: C('#0b1024') });
+    const add = (x, y, z) => spots.push({ x, y, z, ph: Math.random() * 6.28, f: 2.2 + Math.random() * 1.6 });
+    const farZ0 = -(ch / 2 + 3.2);
+    const wide = cw + 14;
+    for (let r = 0; r < rows; r++) {
+      const z = farZ0 - r * 1.15, y = 0.5 + r * 0.95;
+      const step = new THREE.Mesh(new THREE.BoxGeometry(wide, y + 0.2, 1.1), stepMat);
+      step.position.set(0, (y - 0.2) / 2 - 0.1, z); arena.add(step);
+      const n = Math.round(wide / (low ? 2.1 : 1.5));
+      for (let i = 0; i < n; i++) add(-wide / 2 + (i + 0.5) * (wide / n) + (Math.random() - 0.5) * 0.3, y + 0.1, z + (Math.random() - 0.5) * 0.2);
+    }
+    // laterais (vistas nos cantos da tela)
+    [-1, 1].forEach((sg) => {
+      for (let r = 0; r < rows; r++) {
+        const x = sg * (cw / 2 + 3.2 + r * 1.15), y = 0.5 + r * 0.95, len = ch + 4;
+        const step = new THREE.Mesh(new THREE.BoxGeometry(1.1, y + 0.2, len), stepMat);
+        step.position.set(x, (y - 0.2) / 2 - 0.1, 0); arena.add(step);
+        const n = Math.round(len / (low ? 2.4 : 1.7));
+        for (let i = 0; i < n; i++) add(x + (Math.random() - 0.5) * 0.2, y + 0.1, -len / 2 + (i + 0.5) * (len / n) + (Math.random() - 0.5) * 0.3);
+      }
+    });
+    const N = spots.length;
+    const body = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.36, 0.55, 3, 8), new THREE.MeshLambertMaterial({ color: 0xffffff }), N);
+    const head = new THREE.InstancedMesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshLambertMaterial({ color: 0xffffff }), N);
+    const arms = new THREE.InstancedMesh(new THREE.BoxGeometry(0.16, 0.8, 0.16), new THREE.MeshLambertMaterial({ color: 0xffffff }), N * 2);
+    const jersey = [pal.p1, pal.p2, '#ffffff', '#ffd23f', '#7dffb0', '#ff8a3d', pal.rim1, pal.rim2].map((c) => C(c));
+    const skin = ['#f1c9a5', '#d9a47c', '#a9714a', '#7b4a2d', '#f6d7bd'].map((c) => C(c));
+    spots.forEach((s, i) => {
+      body.setColorAt(i, jersey[(Math.random() * jersey.length) | 0].clone().multiplyScalar(0.75 + Math.random() * 0.4));
+      head.setColorAt(i, skin[(Math.random() * skin.length) | 0]);
+      arms.setColorAt(i * 2, skin[(Math.random() * skin.length) | 0]);
+      arms.setColorAt(i * 2 + 1, skin[(Math.random() * skin.length) | 0]);
+    });
+    [body, head, arms].forEach((m) => { m.instanceColor.needsUpdate = true; m.frustumCulled = false; arena.add(m); });
+    crowd = { spots, body, head, arms, dummy: new THREE.Object3D(), frame: 0, low };
+  }
+
+  function updateCrowd(t, dt) {
+    if (!crowd) return;
+    cheer = Math.max(0, cheer - dt * 0.45);
+    if (crowd.low && (crowd.frame++ & 1)) return; // aparelhos fracos: atualiza a cada 2 quadros
+    const d = crowd.dummy, { spots, body, head, arms } = crowd;
+    for (let i = 0; i < spots.length; i++) {
+      const s = spots[i];
+      const amp = 0.06 + cheer * 0.55;
+      const up = Math.abs(Math.sin(t * s.f * (1 + cheer * 1.4) + s.ph)) * amp;
+      const sway = Math.sin(t * 1.3 + s.ph) * 0.05;
+      d.rotation.set(0, 0, sway); d.scale.set(1, 1, 1);
+      d.position.set(s.x, s.y + 0.55 + up, s.z); d.updateMatrix(); body.setMatrixAt(i, d.matrix);
+      d.position.set(s.x, s.y + 1.4 + up, s.z); d.updateMatrix(); head.setMatrixAt(i, d.matrix);
+      // braços: descansados no corpo; erguidos quando a torcida vibra
+      const raise = Math.min(1, cheer * 1.6);
+      for (let k = 0; k < 2; k++) {
+        const side = k ? 1 : -1;
+        d.rotation.set(0, 0, side * (0.15 - raise * 2.6 + Math.sin(t * 6 + s.ph + k) * 0.25 * raise));
+        d.position.set(s.x + side * 0.42, s.y + 0.95 + up + raise * 0.35, s.z); d.updateMatrix(); arms.setMatrixAt(i * 2 + k, d.matrix);
+      }
+    }
+    body.instanceMatrix.needsUpdate = true; head.instanceMatrix.needsUpdate = true; arms.instanceMatrix.needsUpdate = true;
   }
 
   function buildActors() {
@@ -522,6 +595,7 @@ const Game3D = (function () {
     spawnParticles(x, z, 1.0, 24, '#ffffff', 1.6);
     ring(x, z, col, 6);
     shake = 1;
+    cheer = 1;
   }
 
   // --------------------------------------------------------- placar 3D
@@ -683,6 +757,7 @@ const Game3D = (function () {
     camTarget.x += (tx - camTarget.x) * Math.min(1, dt * 3.2);
     camTarget.z += (tz - camTarget.z) * Math.min(1, dt * 3.2);
     const t = performance.now() / 1000;
+    updateCrowd(t, dt);
     const dolly = (1 - ease) * 9;
     if (showcaseOn) {
       const a = Math.sin(t * 0.21) * 0.55, hh = 24 + Math.sin(t * 0.17) * 3;

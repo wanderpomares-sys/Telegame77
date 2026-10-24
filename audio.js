@@ -73,7 +73,7 @@ const GameAudio = (function () {
     paddle: 'pluck_001', wall: 'tick_002', score: 'error_004', start: 'open_001',
     win: 'confirmation_002', lose: 'error_006', trophy: 'confirmation_004', champ: 'maximize_006',
     achieve: 'confirmation_003', nav: 'click_002', confirm: 'select_002', coin: 'glass_003',
-    on: 'switch_003', off: 'switch_005',
+    on: 'switch_003', off: 'switch_005', cheer: 'cheer_goal',
   };
   const samples = {};
   let samplesRequested = false;
@@ -133,6 +133,7 @@ const GameAudio = (function () {
     else beep(440, 0.045, 0.10, 0, 'triangle');
   }
   function playScorePoint() {
+    play('cheer', 0.85); // torcida gritando a cada ponto
     if (play('score', 0.7, 1)) return;
     if (soundPack === 'suave') {
       beep(440, 0.12, 0.10, 0, 'sine');
