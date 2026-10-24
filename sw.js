@@ -10,7 +10,7 @@
  * número da versão em CACHE_NAME abaixo — é assim que o navegador sabe que
  * precisa baixar tudo de novo em vez de usar a cópia antiga guardada.
  */
-const CACHE_VERSION = 'v26';
+const CACHE_VERSION = 'v27';
 const CACHE_NAME = 'telegamevintage-' + CACHE_VERSION;
 
 // Arquivos essenciais pro jogo abrir e rodar sem rede.
@@ -35,6 +35,8 @@ const APP_SHELL = [
   'levels.js',
   'missions.js',
   'script.js',
+  'render3d.js',
+  'lib/three.min.js',
   'manifest.json',
   'icon-180.png',
   'icon-192.png',

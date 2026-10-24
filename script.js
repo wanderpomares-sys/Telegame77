@@ -976,6 +976,10 @@ function renderSettingsBody() {
       <div>${enabled ? t('settings.somLigado') : t('settings.somDesligado')}</div>
       <div>${musicOn ? t('settings.musicaLigada') : t('settings.musicaDesligada')}</div>
       <div>${t('settings.jogadorAtual')}: <b>${playerName || t('settings.nenhum')}</b></div>
+      <div style="margin-top:10px;">${gfxLabel('title')}:</div>
+      <div class="target-row" id="gfxRow" style="margin-top:6px;">
+        ${['auto', 'alto', 'leve', 'classico'].map((p) => `<button class="target-btn${(typeof Game3D !== 'undefined' && Game3D.getPref() === p) ? ' active' : ''}" data-gfx="${p}">${gfxLabel(p)}</button>`).join('')}
+      </div>
       <div style="margin-top:10px;">${t('settings.idioma')}:</div>
       <div class="target-row" id="langRow" style="margin-top:6px;">
         ${GameI18n.availableLanguages().map((lang) => {
@@ -986,12 +990,31 @@ function renderSettingsBody() {
     </div>`;
 }
 
+/** Textos da opção de gráficos (pt/en/es). */
+function gfxLabel(key) {
+  const L = {
+    pt: { title: 'Gráficos', auto: 'Auto', alto: '3D Alto', leve: '3D Leve', classico: 'Clássico 2D' },
+    en: { title: 'Graphics', auto: 'Auto', alto: '3D High', leve: '3D Light', classico: 'Classic 2D' },
+    es: { title: 'Gráficos', auto: 'Auto', alto: '3D Alto', leve: '3D Ligero', classico: 'Clásico 2D' },
+  };
+  return (L[GameI18n.getLang()] || L.pt)[key];
+}
+
 function showSettingsOverlay() {
   const t = GameI18n.t;
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
   document.getElementById('overlayTitle').textContent = t('settings.title');
   document.getElementById('overlayMsg').innerHTML = renderSettingsBody();
+
+  document.querySelectorAll('#gfxRow [data-gfx]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      ensureAudio();
+      GameAudio.playMenuNavigate();
+      if (typeof Game3D !== 'undefined') { await Game3D.setPref(btn.dataset.gfx); draw(); }
+      showSettingsOverlay();
+    });
+  });
 
   document.querySelectorAll('#langRow [data-lang]').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -2166,6 +2189,7 @@ function movePaddles(dtFactor) {
 const MAX_PARTICLES = 60; // teto de segurança pra nunca pesar no celular
 
 function spawnHitParticles(x, y, count, color) {
+  if (typeof Game3D !== 'undefined' && Game3D.isActive()) { Game3D.burst(x, y, count, color); return; }
   if (hitParticles.length > MAX_PARTICLES) return; // já tem partícula demais, ignora
   const scaledCount = effectsLevel === 'minimo' ? Math.ceil(count * 0.4)
                      : effectsLevel === 'maximo' ? Math.ceil(count * 1.6)
@@ -2202,6 +2226,7 @@ function updateParticles(dtFactor) {
  * @param {'p1'|'p2'} scorer - quem marcou
  */
 function awardPoint(scorer) {
+  if (typeof Game3D !== 'undefined' && Game3D.isActive()) Game3D.goal(scorer, ball.x, ball.y);
   // Treino Infinito: a bola só volta pro centro, sem contar ponto nem checar fim de jogo.
   if (specialMode === 'treino_infinito') {
     playScorePoint();
@@ -2461,10 +2486,34 @@ function applyCosmetics(cfg) {
     document.documentElement.style.setProperty(key, cssVars[key]);
   });
 
+  if (typeof Game3D !== 'undefined') {
+    Game3D.setTheme({ ball: ballColor, paddle: paddleColor, bg: screenBgColor, frame: cfg.frameColor || '#222222', pattern: arenaPattern });
+  }
+
   draw(); // redesenha na hora, sem esperar o próximo frame do loop
 }
 
+const gfxState = { mode: 'paredao', W: 0, H: 0, p1y: 0, p2y: 0, paddleH: 50, paddleW: 8, goalHalf: 45,
+  ball: null, trail: null, barrier: { gapTop: 0, gapBottom: 0 } };
+
+/** Entrega o estado atual do jogo pra camada 3D (Game3D). Só leitura. */
+function renderGame3D() {
+  const g = gfxState;
+  g.mode = mode; g.W = W; g.H = H;
+  g.p1y = p1.y; g.p2y = p2.y; g.paddleH = paddleH; g.paddleW = paddleW; g.goalHalf = goalHalf;
+  g.ball = ball; g.trail = ballTrail;
+  if (mode === 'barreira') {
+    const gc = H / 2 + barrierGapAmplitude * Math.sin(barrierPhase);
+    g.barrier.gapTop = gc - barrierGapHeight / 2;
+    g.barrier.gapBottom = gc + barrierGapHeight / 2;
+  }
+  Game3D.render(g);
+}
+
 function draw() {
+  // Modo 3D ligado: a camada 3D desenha tudo (o canvas 2D só recebe o toque)
+  if (typeof Game3D !== 'undefined' && Game3D.isActive()) { renderGame3D(); return; }
+
   // Fundo
   ctx.fillStyle = screenBgColor;
   ctx.fillRect(0, 0, W, H);
@@ -2694,6 +2743,8 @@ function applyTranslations() {
 applyPracticeDifficulty();
 resetRound();
 draw();
+// Gráficos 3D (Three.js): liga se o aparelho suportar WebGL; senão segue em 2D.
+if (typeof Game3D !== 'undefined') Game3D.init().then(() => draw());
 resetMatchTimer();
 GameRanking.load(); // ranking é global (não depende de login pra ser exibido)
 

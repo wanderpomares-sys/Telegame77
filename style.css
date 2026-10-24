@@ -1486,3 +1486,15 @@ body::before {
 /* ajuste: botão do anúncio premiado não pode estourar a caixa com a fonte pixel */
 .shop-ad-row { flex-wrap: wrap; justify-content: center; text-align: center; }
 .shop-ad-row .shop-action { white-space: normal; font-size: 8px; max-width: 100%; }
+
+/* ---------- Modo 3D: a cena WebGL cobre o canvas 2D (que fica invisível, só recebe o toque) ---------- */
+#game3d { display: none; position: absolute; pointer-events: none; z-index: 1; background: #05060f; image-rendering: auto; }
+.screen-frame.gfx3d #game { opacity: 0; }
+.screen-frame.gfx3d::before, .screen-frame.gfx3d::after, .screen-frame.gfx3d .screen-glass { display: none; }
+.screen-frame.gfx3d {
+  padding: 6px;
+  background: #05060f;
+  border: 4px solid var(--o);
+  border-radius: 0;
+  box-shadow: 0 0 0 4px var(--px-slate), 0 0 24px rgba(65,166,246,.35);
+}
