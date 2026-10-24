@@ -2475,3 +2475,26 @@ body.ui-premium .gameplay-controls .target-btn, body.ui-premium .gameplay-contro
 body.ui-premium .gameplay-controls .target-btn.active { background: #00f5ff; color: #0A0A14; font-weight: 700; box-shadow: 0 0 10px rgba(0,245,255,.3); text-shadow: none; }
 body.ui-premium .gameplay-controls .instructions { font: 400 10px/1.5 var(--lb-mono); color: rgba(255,255,255,.4); }
 body.ui-premium .touch-controls .start-btn.off { opacity: .55; }
+
+/* HUD: botões em grade 2x2 e placar compacto */
+body.ui-premium .touch-controls .quick-start-row { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px; align-items: stretch; flex: 1 1 auto; min-width: 0; }
+body.ui-premium .touch-controls .quick-start-row .score-panel { grid-column: 1 / -1; font-size: 18px; line-height: 1.25; padding: 8px 12px; text-align: center; white-space: normal; }
+body.ui-premium .touch-controls .quick-start-row .timer-panel { grid-column: 1 / -1; text-align: center; font: 700 11px var(--lb-mono); color: #ffcc33; }
+body.ui-premium .touch-controls .quick-start-row .start-btn {
+  all: unset !important; box-sizing: border-box !important; cursor: pointer; height: 44px; padding: 0 6px !important; border-radius: 16px !important; display: grid !important; place-items: center;
+  background: rgba(255,255,255,.08) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; font: 700 11px var(--lb-sg) !important; letter-spacing: .1em; text-transform: uppercase; text-align: center; -webkit-tap-highlight-color: transparent; box-shadow: none !important; text-shadow: none !important;
+}
+body.ui-premium .touch-controls .quick-start-row #startBtn { grid-column: 1 / -1; height: 48px; background: #00ff88 !important; color: #0A0A14 !important; border-color: #00ff88 !important; box-shadow: 0 0 16px rgba(0,255,136,.35) !important; }
+body.ui-premium .touch-controls .quick-start-row #musicBtn:not(.off), body.ui-premium .touch-controls .quick-start-row #soundBtn { border-color: rgba(0,245,255,.5) !important; color: #00f5ff !important; }
+body.ui-premium .touch-controls .quick-start-row .start-btn.off { opacity: .6; color: rgba(255,255,255,.6) !important; }
+body.ui-premium .touch-controls .quick-start-row #menuBtn, body.ui-premium .touch-controls .quick-start-row #soundBtn { background: rgba(255,255,255,.08) !important; border: 1px solid rgba(255,255,255,.14) !important; box-shadow: none !important; padding: 0 6px !important; }
+body.ui-premium .touch-controls .quick-start-row #soundBtn { border-color: rgba(0,245,255,.5) !important; }
+body.ui-premium .touch-controls .quick-start-row #startBtn { text-transform: uppercase; }
+body.ui-premium .touch-controls .quick-start-row .start-btn { height: 44px !important; min-height: 44px; font-size: 11px !important; }
+body.ui-premium .touch-controls .quick-start-row #startBtn { height: 52px !important; font-size: 13px !important; }
+body.ui-premium .touch-controls .quick-start-row .score-panel { font-size: 16px; }
+body.ui-premium .touch-controls .quick-start-row .start-btn { place-items: center !important; text-align: center !important; align-content: center; }
+body.ui-premium .touch-controls .quick-start-row #startBtn { grid-column: 1 / -1 !important; }
+body.ui-premium .touch-controls .quick-start-row { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+body.ui-premium .touch-controls .quick-start-row .start-btn { font-size: 10px !important; letter-spacing: .05em; }
+body.ui-premium .touch-controls .quick-start-row #startBtn { font-size: 13px !important; letter-spacing: .12em; }
