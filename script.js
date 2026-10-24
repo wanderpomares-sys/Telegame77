@@ -2404,11 +2404,11 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-var TOUCH_TAP_STEP = 0;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
-const TOUCH_HOLD_DELAY_MS = 0; // só começa a deslizar depois disso (toque curto não "foge")
-const TOUCH_SPEED_MIN = 4.5;  // velocidade ao começar a deslizar
-const TOUCH_SPEED_MAX = 9.5;   // velocidade segurando (acompanha a bola no teto de velocidade)
-const TOUCH_RAMP_MS = 140;    // tempo até atingir a velocidade máxima
+var TOUCH_TAP_STEP = 7;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
+const TOUCH_HOLD_DELAY_MS = 110; // só começa a deslizar depois disso (toque curto não "foge")
+const TOUCH_SPEED_MIN = 3;  // velocidade ao começar a deslizar
+const TOUCH_SPEED_MAX = 9;   // velocidade segurando (acompanha a bola no teto de velocidade)
+const TOUCH_RAMP_MS = 280;    // tempo até atingir a velocidade máxima
 
 /** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
 function touchSpeedFor(keyName) {
