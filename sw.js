@@ -10,7 +10,7 @@
  * número da versão em CACHE_NAME abaixo — é assim que o navegador sabe que
  * precisa baixar tudo de novo em vez de usar a cópia antiga guardada.
  */
-const CACHE_VERSION = 'v24';
+const CACHE_VERSION = 'v25';
 const CACHE_NAME = 'telegamevintage-' + CACHE_VERSION;
 
 // Arquivos essenciais pro jogo abrir e rodar sem rede.
@@ -42,7 +42,7 @@ const APP_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll(APP_SHELL.map((u) => new Request(u, { cache: 'reload' })))) // 'reload' ignora o cache HTTP: nunca guarda cópia velha
       .then(() => self.skipWaiting()) // ativa a nova versão assim que possível
   );
 });
@@ -67,7 +67,7 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      const networkFetch = fetch(event.request)
+      const networkFetch = fetch(event.request, { cache: 'no-cache' })
         .then((response) => {
           // Atualiza o cache com a versão mais nova, silenciosamente, pra próxima vez
           if (response && response.status === 200) {
