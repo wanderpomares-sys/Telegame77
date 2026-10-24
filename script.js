@@ -413,7 +413,7 @@ function logout() {
   updateMenuGate();
   applyCosmetics({
     ballColor: '#c8e6c0', paddleColor: '#c8e6c0', screenBg: '#0c0e0a', effectsLevel: 'padrao', soundPack: 'classico',
-    font: "'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif", letterSpacing: 'normal',
+    font: "'VT323', 'Courier New', monospace", letterSpacing: 'normal',
     cssVars: { '--wood-dark': '#4a3324', '--wood-mid': '#6b4a30', '--wood-light': '#8a6440', '--panel-black': '#1a1a1a', '--frame-color': '#222222' },
   });
 }
