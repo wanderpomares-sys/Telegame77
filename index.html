@@ -237,8 +237,17 @@
   try {
     if ('serviceWorker' in navigator && navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {
+        const hadController = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.register('sw.js').then((reg) => { try { reg.update(); } catch (e) { /* ok */ } }).catch(() => {
           // Sem problema: modo offline não disponível nesta forma de abrir o jogo.
+        });
+        // Quando uma versão nova assume, recarrega uma vez (se não estiver no meio de uma partida).
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!hadController || reloaded) return;
+          if (typeof running !== 'undefined' && running) return;
+          reloaded = true;
+          window.location.reload();
         });
       });
     }

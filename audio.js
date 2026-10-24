@@ -110,6 +110,12 @@ const GameAudio = (function () {
     } catch (e) { return false; }
   }
 
+  // Prepara os sons reais já no primeiro toque (antes de qualquer efeito ser pedido).
+  window.addEventListener('pointerdown', function unlock() {
+    window.removeEventListener('pointerdown', unlock);
+    if (ensureAudio()) loadSamples();
+  }, { passive: true });
+
   // --- Efeitos de jogo já existentes -----------------------------------------
   // Cada efeito varia um pouco conforme o "pacote de som" equipado na loja:
   // Clássico (padrão), Suave (mais discreto) e Arcade (mais agressivo).
