@@ -194,7 +194,7 @@ function vibrate(pattern) { GameAudio.vibrate(pattern); }
 
 document.getElementById('soundBtn').addEventListener('click', () => {
   const enabled = GameAudio.toggleSound();
-  document.getElementById('soundBtn').textContent = enabled ? '🔊' : '🔇';
+  document.getElementById('soundBtn').textContent = enabled ? 'SOM' : 'MUDO';
   GameAudio.ensureAudio();
   if (enabled) GameAudio.playToggleOn();
   else GameAudio.playToggleOff();
@@ -211,6 +211,9 @@ window.addEventListener('keydown', e => {
     ensureAudio();
     if (running) {
       pauseLoop();
+      showPauseOverlay();
+    } else if (document.getElementById('overlay').style.display === 'flex') {
+      /* menu aberto: espaço não inicia a partida */
     } else {
       playStartSound();
       startLoop();
@@ -302,6 +305,7 @@ document.getElementById('startBtn').addEventListener('click', () => {
   ensureAudio();
   if (running) {
     pauseLoop();
+    showPauseOverlay();
   } else if (countdownRunning) {
     cancelCountdown(); // tocar de novo durante a contagem cancela
   } else {
@@ -600,7 +604,18 @@ function updateChampionshipPanel() {
   panel.textContent = `${track.label} ${track.trophy} · Fase ${roundIndex + 1}/${track.rounds.length} · Adversário: ${r.name} · Vitória com ${r.target} pontos · Vidas: ${heartsRow}`;
 }
 
-function showOverlay(title, msg, actions) {
+function showPauseOverlay() {
+  const label = (typeof TRACKS !== 'undefined' && TRACKS[mode]) ? TRACKS[mode].label.toUpperCase() : '';
+  showOverlay('PAUSA', `${label} · ${p1.score} X ${p2.score}`, [
+    { label: 'CONTINUAR', action: () => { playStartSound(); startLoop(); } },
+    { label: 'REINICIAR', action: () => { p1.score = 0; p2.score = 0; resetRound(); resetMatchTimer(); draw(); updateScore(); } },
+    { label: 'COMO JOGAR', action: () => { showHelpOverlay(() => showPauseOverlay()); } },
+    { label: 'SAIR DA PARTIDA', action: () => showMainMenu(), danger: true },
+  ]);
+  document.getElementById('overlay').classList.add('res-pause');
+}
+
+function showOverlay(title, msg, actions, kind) {
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
   document.getElementById('overlayTitle').textContent = title;
@@ -609,18 +624,67 @@ function showOverlay(title, msg, actions) {
   actionsEl.innerHTML = '';
   actions.forEach((a, i) => {
     const btn = document.createElement('button');
-    btn.className = 'overlay-btn' + (i > 0 ? ' secondary' : '');
+    btn.className = 'overlay-btn' + (i > 0 ? ' secondary' : '') + (a.danger ? ' danger' : '');
     btn.textContent = a.label;
     btn.onclick = () => { hideOverlay(); a.action(); };
     actionsEl.appendChild(btn);
   });
-  document.getElementById('overlay').style.display = 'flex';
+  const ovEl = document.getElementById('overlay');
+  ovEl.classList.remove('victory', 'res-win', 'res-lose', 'res-pause');
+  lxShow();
+  lxChip();
+  if (kind) lxResult(kind, msg);
+  ovEl.scrollTop = 0;
+}
+
+/** Layout de fim de partida (vitória/derrota) no padrão lobby, com dados reais da partida. */
+function lxResult(kind, msg) {
+  const ov = document.getElementById('overlay');
+  const win = kind === 'win';
+  ov.classList.add(win ? 'res-win' : 'res-lose');
+  document.getElementById('overlayTrophy').style.display = 'none';
+  const lv = (typeof GameLevels !== 'undefined') ? GameLevels.getInfo() : null;
+  const pct = lv ? Math.min(100, Math.round(lv.xpIntoLevel / lv.xpForNextLevel * 100)) : 0;
+  const mm = String(Math.floor((matchSeconds || 0) / 60)).padStart(2, '0');
+  const ss = String((matchSeconds || 0) % 60).padStart(2, '0');
+  const who = escapeHtml(playerName || 'VOCÊ').toUpperCase();
+  const modeLbl = (typeof TRACKS !== 'undefined' && TRACKS[mode]) ? TRACKS[mode].label : '';
+  document.getElementById('overlayMsg').innerHTML = `
+    <div class="lx-res-badge">${lxIcon(win ? LXI.trophy : LXI.flag)} PARTIDA FINALIZADA</div>
+    <div class="lx-res-sub">${escapeHtml(String(msg || ''))}</div>
+    <div class="lx-res-board">
+      <div class="lx-team"><b class="${win ? 'w' : ''}">${p1.score}</b><p>${who}</p></div>
+      <div class="lx-vs">VS</div>
+      <div class="lx-team"><b class="${win ? '' : 'l'}">${p2.score}</b><p>CPU${modeLbl ? ' · ' + escapeHtml(String(modeLbl).toUpperCase()) : ''}</p></div>
+    </div>
+    <div class="lx-grid3">
+      <div class="lx-card"><h4>DURAÇÃO</h4><b>${mm}:${ss}</b></div>
+      <div class="lx-card"><h4>PONTOS</h4><b>${p1.score} / ${p2.score}</b></div>
+      <div class="lx-card"><h4>NÍVEL</h4><b>${lv ? lv.level : 1}</b></div>
+    </div>
+    ${lv ? `<div class="lx-res-lvl"><div class="lx-res-lvt"><span>NV.${lv.level} · ${lv.xpIntoLevel} XP</span><span>NV.${lv.level + 1} · ${lv.xpForNextLevel} XP</span></div>
+      <div class="lx-bar big"><i style="width:${pct}%"></i></div>
+      <p class="lx-hint">${pct}% PARA O PRÓXIMO NÍVEL · ${Math.max(0, lv.xpForNextLevel - lv.xpIntoLevel)} XP RESTANTES</p></div>` : ''}`;
+  if (win) { spawnResultConfetti(); }
+  const first = document.querySelector('#overlayActions .overlay-btn');
+  if (first) first.classList.add('primary');
+}
+
+function spawnResultConfetti() {
+  const cols = ['#00ff88', '#00f5ff', '#ffcc33', '#ff00ff', '#ffffff'];
+  const wrap = document.getElementById('overlayMsg');
+  const c = document.createElement('div'); c.className = 'lx-confetti';
+  for (let i = 0; i < 14; i++) {
+    const d = document.createElement('i');
+    d.style.left = (5 + i * 6.5) + '%'; d.style.background = cols[i % cols.length];
+    d.style.animationDelay = (i % 7) * 0.25 + 's';
+    c.appendChild(d);
+  }
+  wrap.appendChild(c);
 }
 
 function showVictoryOverlay(title, msg, actions) {
-  showOverlay(title, msg, actions);
-  document.getElementById('overlayTrophy').style.display = 'block';
-  startFireworks();
+  showOverlay(title, msg, actions, 'win');
 }
 
 /**
@@ -646,6 +710,7 @@ async function shareResult(text) {
 
 function hideOverlay() {
   document.getElementById('overlay').style.display = 'none';
+  document.getElementById('overlay').classList.remove('victory');
   stopFireworks();
 }
 
@@ -710,92 +775,174 @@ function showAchievementToast(def) {
 }
 
 /** Overlay simples com o resumo das estatísticas (tela dedicada vem na Etapa 1). */
+
+// --- Telas internas no padrão lobby (componentes) -----------------------------
+const LXI = {
+  flag: "<path d='M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7'/>",
+  bars: "<path d='M3 3v18h18'/><path d='M8 17v-5M13 17V8M18 17v-9'/>",
+  trophy: "<path d='M6 9H4.500a2.500 2.500 0 010-5H6M18 9h1.500a2.500 2.500 0 000-5H18M4 22h16M10 14.700V17c0 .6-.5 1-1.200 1.200C7.800 18.600 7 20.200 7 22M14 14.700V17c0 .6.5 1 1.200 1.200 1 .4 1.800 2 1.800 3.800M18 2H6v7a6 6 0 0012 0z'/>",
+  star: "<path d='M12 2l3 7 7 .6-5.300 4.600 1.600 7L12 17.800 5.700 21.200l1.600-7L2 9.600 9 9z'/>",
+  crown: "<path d='M2 8l5 4 5-8 5 8 5-4-2 11H4z'/>",
+  pie: "<path d='M21 12A9 9 0 1112 3v9z'/><path d='M15 3.500A9 9 0 0120.500 9H15z'/>",
+  list: "<path d='M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4c0-1 2-2 2-3s-1-1.500-2-1'/>",
+  target: "<circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2'/>",
+  check: "<path d='M20 6L9 17l-5-5'/>",
+  lock: "<rect x='3' y='11' width='18' height='11' rx='2'/><path d='M7 11V7a5 5 0 0110 0v4'/>",
+  award: "<circle cx='12' cy='8' r='6'/><path d='M15.500 13.500L17 22l-5-3-5 3 1.500-8.500'/>",
+  coin: "<circle cx='12' cy='12' r='9'/><path d='M12 7v10M9.500 9.500c0-1 1-1.500 2.500-1.500s2.500.7 2.500 1.800c0 2.200-5 1.200-5 3.500 0 1.100 1 1.700 2.500 1.700s2.500-.5 2.500-1.500'/>",
+  vol: "<path d='M11 5L6 9H2v6h4l5 4zM15.500 8.500a5 5 0 010 7M19 5a10 10 0 010 14'/>",
+  monitor: "<rect x='2' y='3' width='20' height='14' rx='2'/><path d='M8 21h8M12 17v4'/>",
+  palette: "<circle cx='13.500' cy='6.500' r='1'/><circle cx='17.500' cy='10.500' r='1'/><circle cx='8.500' cy='7.500' r='1'/><circle cx='6.500' cy='12.500' r='1'/><path d='M12 2a10 10 0 000 20c1.700 0 2-1 1.500-2.200-.5-1.200.2-2.300 1.500-2.300H17a5 5 0 005-5C22 6.500 17.500 2 12 2z'/>",
+  lang: "<path d='M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6'/>",
+  user: "<path d='M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2'/><circle cx='12' cy='7' r='4'/>",
+  help: "<circle cx='12' cy='12' r='10'/><path d='M9.100 9a3 3 0 015.800 1c0 2-3 3-3 3M12 17h.01'/>",
+  info: "<circle cx='12' cy='12' r='10'/><path d='M12 16v-4M12 8h.01'/>",
+  arrow: "<path d='M19 12H5M12 19l-7-7 7-7'/>",
+  bolt: "<path d='M13 2L3 14h9l-1 8 10-12h-9z'/>",
+};
+function lxIcon(path) { return `<svg class="lb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
+function lxSec(icon, text) { return `<div class="lx-sec"><i class="lx-ic">${lxIcon(icon)}</i><h3>${text}</h3><span class="lx-line"></span></div>`; }
+function lxStat(label, value, opt) {
+  opt = opt || {};
+  const bar = opt.pct != null ? `<div class="lx-bar"><i style="width:${Math.max(0, Math.min(100, opt.pct))}%;${opt.color ? 'background:' + opt.color : ''}"></i></div>` : '';
+  const sub = opt.sub ? `<p>${opt.sub}</p>` : '';
+  return `<div class="lx-card"><h4>${label}</h4><b${opt.color ? ` style="color:${opt.color}"` : ''}>${value}</b>${sub}${bar}</div>`;
+}
+/** Preenche os botões de ação do overlay (o 1º é o principal). */
+function lxActions(buttons) {
+  const el = document.getElementById('overlayActions');
+  el.innerHTML = '';
+  buttons.forEach((b, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'overlay-btn' + (b.secondary || i > 0 ? ' secondary' : '');
+    btn.innerHTML = (b.back ? lxIcon(LXI.arrow) : '') + `<span>${b.label}</span>`;
+    btn.onclick = b.onclick;
+    el.appendChild(btn);
+  });
+}
+function lxShow() {
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('victory');
+  ov.style.display = 'flex';
+  lxChip();
+  ov.scrollTop = 0;
+}
+function lxChip() {
+  const chip = document.getElementById('overlayChip');
+  if (chip) {
+    if (playerName) {
+      const lv = (typeof GameLevels !== 'undefined') ? GameLevels.getInfo().level : 1;
+      chip.innerHTML = `<span class="lb-avatar">${escapeHtml(playerName.trim().charAt(0).toUpperCase())}</span><span class="lx-cn">${escapeHtml(playerName)}</span><em class="lb-lv">Nv.${lv}</em>`;
+      chip.style.display = 'flex';
+    } else chip.style.display = 'none';
+  }
+}
+
 function showStatsOverlay(returnToMenu) {
   if (!playerName) return;
   const s = GameStats.getSummary();
   const modeNames = { paredao: 'Paredão', tenis: 'Tênis', futebol: 'Futebol', barreira: 'Barreira' };
+  const modeColors = { paredao: '#00ff88', tenis: '#00f5ff', futebol: '#ffcc33', barreira: '#ff00ff' };
   const diffNames = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
   const lvl = GameLevels.getInfo();
   const xpPct = Math.round((lvl.xpIntoLevel / lvl.xpForNextLevel) * 100);
   const missions = GameMissions.getProgressView();
   const records = GameRecords.getSummary();
+  const total = s.matchesPlayed || 0;
+  const lossPct = total ? 100 - s.winRate : 0;
 
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
-  document.getElementById('overlayTitle').textContent = `📊 Estatísticas de ${playerName}`;
+  document.getElementById('overlayTitle').textContent = 'Estatísticas';
   document.getElementById('overlayMsg').innerHTML = `
-    <div class="level-block">
-      <div class="level-label">Nível <b>${lvl.level}</b> — ${lvl.xpIntoLevel}/${lvl.xpForNextLevel} XP</div>
-      <div class="level-bar"><div class="level-bar-fill" style="width:${xpPct}%;"></div></div>
+    <div class="lx-level"><div><b>${lvl.level}</b><span>NÍVEL</span></div>
+      <div class="lx-level-r"><small>${lvl.xpIntoLevel}/${lvl.xpForNextLevel} XP</small><div class="lx-bar big"><i style="width:${xpPct}%"></i></div></div></div>
+
+    ${lxSec(LXI.bars, 'ESTATÍSTICAS GERAIS')}
+    <div class="lx-grid3">
+      ${lxStat('PARTIDAS', total, { pct: total ? 100 : 0 })}
+      ${lxStat('VITÓRIAS', s.wins, { color: '#00ff88', pct: s.winRate })}
+      ${lxStat('DERROTAS', s.losses, { color: '#ff5a5a', pct: lossPct })}
     </div>
-    <div class="missions-title">🏆 Meus Recordes</div>
-    <div class="stats-grid">
-      <div>Melhor pontuação: <b>${records.bestScore}</b></div>
-      <div>Melhor tempo no Paredão: <b>${formatTime(records.paredaoBestSeconds)}</b></div>
-      <div>Partidas jogadas: <b>${records.matchesPlayed}</b></div>
-      <div>Maior sequência: <b>${records.bestWinStreak}</b></div>
+    <div class="lx-grid3">
+      ${lxStat('TAXA VITÓRIA', s.winRate + '%', { pct: s.winRate })}
+      ${lxStat('MAIOR SEQ.', s.bestWinStreak || 0, { sub: 'VITÓRIAS' })}
+      ${lxStat('TEMPO JOGADO', s.playtimeLabel, {})}
     </div>
-    <div class="stats-grid">
-      <div>Aproveitamento: <b>${s.winRate}%</b></div>
-      <div>Vitórias: <b>${s.wins}</b></div>
-      <div>Derrotas: <b>${s.losses}</b></div>
-      <div>Tempo jogado: <b>${s.playtimeLabel}</b></div>
-      <div>Pontos marcados: <b>${s.pointsFor}</b></div>
-      <div>Pontos sofridos: <b>${s.pointsAgainst}</b></div>
-      <div>Modo favorito: <b>${s.favoriteMode ? modeNames[s.favoriteMode] : '—'}</b></div>
-      <div>Dificuldade favorita: <b>${s.favoriteDifficulty ? diffNames[s.favoriteDifficulty] : '—'}</b></div>
-      <div>Campeonatos vencidos: <b>${s.championshipsWon}</b></div>
-      <div>Troféus conquistados: <b>${s.trophiesWon}</b></div>
+    <div class="lx-grid2">
+      ${lxStat('PONTOS FEITOS', s.pointsFor, { color: '#00ff88' })}
+      ${lxStat('PONTOS SOFRIDOS', s.pointsAgainst, {})}
     </div>
-    <div class="missions-title">🎯 Missões de hoje</div>
-    <div class="missions-list">
+
+    ${lxSec(LXI.pie, 'PARTIDAS POR MODO')}
+    <div class="lx-card lx-list">
+      ${Object.keys(modeNames).map(k => {
+        const n = (s.modeCounts && s.modeCounts[k]) || 0;
+        const pct = total ? Math.round(n / total * 100) : 0;
+        return `<div class="lx-row"><div><div class="lx-rn">${modeNames[k]}</div><div class="lx-rs">${n} JOGOS</div></div>
+          <div class="lx-rr"><span style="color:${modeColors[k]}">${pct}%</span><div class="lx-bar" style="width:64px"><i style="width:${pct}%;background:${modeColors[k]}"></i></div></div></div>`;
+      }).join('')}
+    </div>
+
+    ${lxSec(LXI.star, 'FAVORITOS E RECORDES')}
+    <div class="lx-grid2">
+      ${lxStat('MODO FAVORITO', s.favoriteMode ? modeNames[s.favoriteMode] : '—', {})}
+      ${lxStat('DIFICULDADE', s.favoriteDifficulty ? diffNames[s.favoriteDifficulty] : '—', {})}
+      ${lxStat('MELHOR PONTUAÇÃO', records.bestScore, { color: '#ffcc33' })}
+      ${lxStat('MELHOR TEMPO PAREDÃO', formatTime(records.paredaoBestSeconds), {})}
+      ${lxStat('CAMPEONATOS', s.championshipsWon, {})}
+      ${lxStat('TROFÉUS', s.trophiesWon, { color: '#ffcc33' })}
+    </div>
+
+    ${lxSec(LXI.target, 'MISSÕES DE HOJE')}
+    <div class="lx-card lx-list">
       ${missions.map(m => `
-        <div class="mission-row${m.done ? ' done' : ''}">
-          <span class="icon">${m.icon}</span>
-          <div class="info">
-            <div class="name">${m.label}</div>
-            <div class="progress">${m.done ? 'Concluída · +' + m.reward + ' 🪙' : `${m.current}/${m.target}`}</div>
-          </div>
-        </div>
+        <div class="lx-row${m.done ? ' done' : ''}"><div><div class="lx-rn">${m.label}</div>
+          <div class="lx-rs">${m.done ? 'CONCLUÍDA · +' + m.reward + ' MOEDAS' : m.current + '/' + m.target}</div></div>
+          <div class="lx-rr">${m.done ? `<span class="lx-ok">${lxIcon(LXI.check)}</span>` : `<div class="lx-bar" style="width:64px"><i style="width:${Math.min(100, Math.round(m.current / m.target * 100))}%"></i></div>`}</div></div>
       `).join('')}
     </div>`;
-  const actionsEl = document.getElementById('overlayActions');
-  actionsEl.innerHTML = '';
-  const btn = document.createElement('button');
-  btn.className = 'overlay-btn';
-  btn.textContent = returnToMenu ? 'Voltar ao Menu' : 'Fechar';
-  btn.onclick = () => { hideOverlay(); if (returnToMenu) showMainMenu(); };
-  actionsEl.appendChild(btn);
-  document.getElementById('overlay').style.display = 'flex';
+  lxActions([{ label: returnToMenu ? 'VOLTAR' : 'FECHAR', back: true, onclick: () => { hideOverlay(); if (returnToMenu) showMainMenu(); } }]);
+  lxShow();
 }
 
 /** Overlay simples com a lista de conquistas (tela dedicada vem na Etapa 1). */
 function showAchievementsOverlay(returnToMenu) {
   if (!playerName) return;
   const list = GameAchievements.getAll();
+  const got = list.filter(a => a.unlocked).length;
+  const pct = list.length ? Math.round(got / list.length * 1000) / 10 : 0;
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
-  document.getElementById('overlayTitle').textContent = `🏆 Conquistas (${GameAchievements.getUnlockedCount()}/${list.length})`;
-  document.getElementById('overlayMsg').innerHTML = `
-    <div class="achievements-list">
-      ${list.map(a => `
-        <div class="achievement-row${a.unlocked ? ' unlocked' : ''}">
-          <span class="icon">${a.icon}</span>
-          <div class="info">
-            <div class="name">${a.name}</div>
-            <div class="desc">${a.desc}</div>
-          </div>
-        </div>
-      `).join('')}
+  document.getElementById('overlayTitle').textContent = 'Conquistas';
+  const rowHtml = a => `
+    <div class="lx-ach ${a.unlocked ? 'unlocked' : 'locked'}" data-state="${a.unlocked ? 'u' : 'l'}">
+      <div class="lx-aicon">${lxIcon(a.unlocked ? LXI.award : LXI.lock)}</div>
+      <div class="lx-abody">
+        <div class="lx-an">${escapeHtml(a.name)}${a.unlocked ? `<i class="lx-achk">${lxIcon(LXI.check)}</i>` : ''}</div>
+        <div class="lx-ad">${escapeHtml(a.desc)}</div>
+        <div class="lx-reward">${lxIcon(LXI.coin)} ${a.coins} MOEDAS</div>
+      </div>
+      <span class="lx-badge ${a.unlocked ? 'on' : ''}">${a.unlocked ? 'DESBLOQUEADA' : 'BLOQUEADA'}</span>
     </div>`;
-  const actionsEl = document.getElementById('overlayActions');
-  actionsEl.innerHTML = '';
-  const btn = document.createElement('button');
-  btn.className = 'overlay-btn';
-  btn.textContent = returnToMenu ? 'Voltar ao Menu' : 'Fechar';
-  btn.onclick = () => { hideOverlay(); if (returnToMenu) showMainMenu(); };
-  actionsEl.appendChild(btn);
-  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('overlayMsg').innerHTML = `
+    ${lxSec(LXI.trophy, 'PROGRESSO GERAL')}
+    <div class="lx-card lx-prog">
+      <div class="lx-prog-top"><div><b>${got} <small>/ ${list.length}</small></b><span>CONQUISTAS DESBLOQUEADAS</span></div><div class="lx-pct">${pct}%<small>COMPLETO</small></div></div>
+      <div class="lx-bar big"><i style="width:${pct}%"></i></div>
+    </div>
+    <div class="lx-filters" id="achFilters">
+      <button class="active" data-f="all">TODAS</button>
+      <button data-f="u">DESBLOQUEADAS (${got})</button>
+      <button data-f="l">BLOQUEADAS (${list.length - got})</button>
+    </div>
+    <div class="lx-achlist" id="achList">${list.map(rowHtml).join('')}</div>`;
+  document.querySelectorAll('#achFilters button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#achFilters button').forEach(x => x.classList.toggle('active', x === b));
+    document.querySelectorAll('#achList .lx-ach').forEach(r => { r.style.display = (b.dataset.f === 'all' || r.dataset.state === b.dataset.f) ? '' : 'none'; });
+  }));
+  lxActions([{ label: returnToMenu ? 'VOLTAR' : 'FECHAR', back: true, onclick: () => { hideOverlay(); if (returnToMenu) showMainMenu(); } }]);
+  lxShow();
 }
 
 /** Escapa texto que veio do jogador (nome) antes de jogar em innerHTML. */
@@ -833,46 +980,47 @@ function revealGameplayControls() {
 }
 
 /** Overlay com a lista local de melhores pontuações (Top 10 / Top 100). */
-function showRankingOverlay(expanded) {
-  const list = GameRanking.getTop(expanded ? 100 : 10);
+function showRankingOverlay(expanded, modeFilter) {
+  modeFilter = modeFilter || 'todos';
   const modeNames = { paredao: 'Paredão', tenis: 'Tênis', futebol: 'Futebol', barreira: 'Barreira' };
+  const all = GameRanking.getTop(100);
+  const list = (modeFilter === 'todos' ? all : all.filter(e => e.mode === modeFilter)).slice(0, expanded ? 100 : 10);
   const myRank = playerName ? GameRanking.getMyBestRank(playerName) : null;
 
   document.getElementById('overlayTrophy').style.display = 'none';
   stopFireworks();
-  document.getElementById('overlayTitle').textContent = expanded ? '📈 Ranking (Top 100 local)' : '📈 Ranking (Top 10 local)';
+  document.getElementById('overlayTitle').textContent = 'Ranking';
 
-  const posLine = myRank
-    ? `<div class="ranking-my-position">Sua melhor posição: <b>${myRank}º</b> de ${GameRanking.getTotalEntries()}</div>`
-    : '';
-  const rows = list.map((e, i) => `
-    <div class="ranking-row">
-      <span class="rank">${i + 1}º</span>
-      <span class="rname">${escapeHtml(e.name)}</span>
-      <span class="rscore">${e.score}</span>
-      <span class="rmode">${modeNames[e.mode] || e.mode}</span>
-    </div>`).join('');
+  const podium = list.slice(0, 3);
+  const cls = ['first', 'second', 'third'], av = ['gold', 'silver', 'bronze'];
+  const pCard = (e, i) => `
+    <div class="lx-pcard ${cls[i]}">${i === 0 ? `<div class="lx-crown">${lxIcon(LXI.crown)}</div>` : ''}<div class="lx-ppos${i === 0 ? ' first' : ''}">${i + 1}</div>
+      <div class="lx-pav ${av[i]}">${escapeHtml(e.name.trim().charAt(0).toUpperCase())}</div>
+      <div class="lx-pname">${escapeHtml(e.name)}</div><div class="lx-ppts">${e.score} PTS</div><div class="lx-pmode">${(modeNames[e.mode] || e.mode).toUpperCase()}</div>
+      <div class="lx-pbase">${i + 1}º LUGAR</div></div>`;
+  const podiumHtml = podium.length ? `<div class="lx-podium">${[1, 0, 2].filter(i => podium[i]).map(i => pCard(podium[i], i)).join('')}</div>` : '';
+  const rows = list.slice(3).map((e, i) => `
+    <div class="lx-rank${playerName && e.name === playerName ? ' me' : ''}"><div class="lx-pos${i < 2 ? ' top' : ''}">${i + 4}</div>
+      <div class="lx-av">${escapeHtml(e.name.trim().charAt(0).toUpperCase())}</div>
+      <div class="lx-rinfo"><div class="lx-rname">${escapeHtml(e.name)}${playerName && e.name === playerName ? '<span class="lx-you">VOCÊ</span>' : ''}</div><div class="lx-rmode">${(modeNames[e.mode] || e.mode).toUpperCase()}</div></div>
+      <div class="lx-rpts">${e.score}<small>PTS</small></div></div>`).join('');
+  const filters = ['todos', 'paredao', 'tenis', 'futebol', 'barreira'].map(m => `<button class="${m === modeFilter ? 'active' : ''}" data-mf="${m}">${m === 'todos' ? 'TODOS' : modeNames[m].toUpperCase()}</button>`).join('');
 
-  document.getElementById('overlayMsg').innerHTML = posLine + `
-    <div class="ranking-list">
-      ${rows || '<div class="ranking-empty">Ainda não há pontuações registradas.<br>Jogue uma partida (logado) pra entrar no ranking!</div>'}
-    </div>`;
+  document.getElementById('overlayMsg').innerHTML = `
+    ${lxSec(LXI.crown, 'PÓDIO · TOP 3')}
+    ${podiumHtml || '<div class="lx-empty">Ainda não há pontuações registradas.<br>Jogue uma partida (logado) para entrar no ranking!</div>'}
+    ${lxSec(LXI.list, expanded ? 'TOP 100 LOCAL' : 'TOP 10 LOCAL')}
+    <div class="lx-filters" id="rankFilters">${filters}</div>
+    <div class="lx-ranklist">${rows}</div>
+    ${myRank ? `<div class="lx-rank me solo"><div class="lx-pos me">${myRank}</div><div class="lx-av me">${escapeHtml(playerName.trim().charAt(0).toUpperCase())}</div><div class="lx-rinfo"><div class="lx-rname">${escapeHtml(playerName)}<span class="lx-you">VOCÊ</span></div><div class="lx-rmode">SUA MELHOR POSIÇÃO · ${GameRanking.getTotalEntries()} REGISTROS</div></div></div>` : ''}
+    <div class="lx-note">RANKING SALVO NESTE APARELHO</div>`;
+  document.querySelectorAll('#rankFilters button').forEach(b => b.addEventListener('click', () => showRankingOverlay(expanded, b.dataset.mf)));
 
-  const actionsEl = document.getElementById('overlayActions');
-  actionsEl.innerHTML = '';
-  if (!expanded && GameRanking.getTotalEntries() > 10) {
-    const moreBtn = document.createElement('button');
-    moreBtn.className = 'overlay-btn secondary';
-    moreBtn.textContent = 'Ver Top 100';
-    moreBtn.onclick = () => showRankingOverlay(true);
-    actionsEl.appendChild(moreBtn);
-  }
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'overlay-btn';
-  closeBtn.textContent = 'Voltar ao Menu';
-  closeBtn.onclick = () => { hideOverlay(); showMainMenu(); };
-  actionsEl.appendChild(closeBtn);
-  document.getElementById('overlay').style.display = 'flex';
+  const acts = [];
+  if (!expanded && GameRanking.getTotalEntries() > 10) acts.push({ label: 'VER TOP 100', secondary: true, onclick: () => showRankingOverlay(true, modeFilter) });
+  acts.unshift({ label: 'VOLTAR', back: true, onclick: () => { hideOverlay(); showMainMenu(); } });
+  lxActions(acts);
+  lxShow();
 }
 
 let shopActiveCategory = 'ball';
@@ -1066,35 +1214,57 @@ async function showShopOverlay(category) {
   closeBtn.onclick = () => { hideOverlay(); showMainMenu(); };
   actionsEl.appendChild(closeBtn);
 
-  document.getElementById('overlay').style.display = 'flex';
+  lxShow();
 }
 
 function renderSettingsBody() {
   const t = GameI18n.t;
   const enabled = GameAudio.isSoundEnabled();
   const musicOn = GameAudio.isMusicEnabled();
-  const labels = { pt: '🇧🇷 Português', en: '🇺🇸 English', es: '🇪🇸 Español' };
-  return `
-    <div class="settings-body">
-      <div>${enabled ? t('settings.somLigado') : t('settings.somDesligado')}</div>
-      <div>${musicOn ? t('settings.musicaLigada') : t('settings.musicaDesligada')}</div>
-      <div>${t('settings.jogadorAtual')}: <b>${playerName || t('settings.nenhum')}</b></div>
-      <div style="margin-top:10px;">${themeLabel('title')}:</div>
-      <div class="target-row" id="themeRow" style="margin-top:6px;">
-        ${['premium', 'pixel'].map((n) => `<button class="target-btn${(n === 'pixel') === document.body.classList.contains('ui-pixel') ? ' active' : ''}" data-uitheme="${n}">${themeLabel(n)}</button>`).join('')}
-      </div>
-      <div style="margin-top:10px;">${gfxLabel('title')}:</div>
-      <div class="target-row" id="gfxRow" style="margin-top:6px;">
-        ${['auto', 'alto', 'leve', 'classico'].map((p) => `<button class="target-btn${(typeof Game3D !== 'undefined' && Game3D.getPref() === p) ? ' active' : ''}" data-gfx="${p}">${gfxLabel(p)}</button>`).join('')}
-      </div>
-      <div style="margin-top:10px;">${t('settings.idioma')}:</div>
-      <div class="target-row" id="langRow" style="margin-top:6px;">
-        ${GameI18n.availableLanguages().map((lang) => {
-          const active = lang === GameI18n.getLang();
-          return `<button class="target-btn${active ? ' active' : ''}" data-lang="${lang}">${labels[lang] || lang}</button>`;
-        }).join('')}
-      </div>
+  const labels = { pt: 'PORTUGUÊS', en: 'ENGLISH', es: 'ESPAÑOL' };
+  const st = (typeof GameStats !== 'undefined' && playerName) ? GameStats.getSummary() : null;
+  let acct = '';
+  if (playerName) {
+    const lv = GameLevels.getInfo().level;
+    const rank = GameRanking.getMyBestRank(playerName);
+    acct = `
+    <div class="lx-card lx-account">
+      <div class="lx-av big">${escapeHtml(playerName.trim().charAt(0).toUpperCase())}</div>
+      <div class="lx-acc-i"><b>${escapeHtml(playerName)} · NV.${lv}</b>
+        <small>${st ? st.matchesPlayed : 0} PARTIDAS · ${GameAchievements.getUnlockedCount()}/${GameAchievements.DEFINITIONS.length} CONQUISTAS${rank ? ' · #' + rank + ' RANKING' : ''}</small>
+        <em>SALVO NESTE APARELHO</em></div>
+      <button class="lx-mini" id="setLogout">${t('menu.trocarJogador').toUpperCase()}</button>
     </div>`;
+  } else {
+    acct = `<div class="lx-card"><div class="lx-rs">${t('settings.jogadorAtual').toUpperCase()}: ${t('settings.nenhum').toUpperCase()}</div></div>`;
+  }
+  return `
+    ${lxSec(LXI.vol, 'ÁUDIO')}
+    <div class="lx-card lx-list">
+      <div class="lx-set"><div><div class="lx-rn">SOM</div><div class="lx-rs">EFEITOS SONOROS E FEEDBACK</div></div><button class="lx-switch${enabled ? ' on' : ''}" id="swSound" role="switch" aria-checked="${enabled}"></button></div>
+      <div class="lx-set"><div><div class="lx-rn">MÚSICA</div><div class="lx-rs">TRILHA DE FUNDO</div></div><button class="lx-switch${musicOn ? ' on' : ''}" id="swMusic" role="switch" aria-checked="${musicOn}"></button></div>
+    </div>
+
+    ${lxSec(LXI.monitor, gfxLabel('title').toUpperCase())}
+    <div class="lx-card">
+      <div class="lx-seg" id="gfxRow">
+        ${['auto', 'alto', 'leve', 'classico'].map((p) => `<button class="${(typeof Game3D !== 'undefined' && Game3D.getPref() === p) ? 'active' : ''}" data-gfx="${p}">${gfxLabel(p).toUpperCase()}</button>`).join('')}
+      </div>
+      <p class="lx-hint">AUTOMÁTICO AJUSTA CONFORME O DESEMPENHO DO SEU APARELHO${(typeof Game3D !== 'undefined' && Game3D.getQuality) ? ' · ATUAL: ' + String(Game3D.getQuality()).toUpperCase() : ''}</p>
+    </div>
+
+    ${lxSec(LXI.palette, themeLabel('title').toUpperCase())}
+    <div class="lx-card"><div class="lx-seg tema" id="themeRow">
+      ${['premium', 'pixel'].map((n) => `<button class="${(n === 'pixel') === document.body.classList.contains('ui-pixel') ? 'active' : ''}" data-uitheme="${n}">${themeLabel(n).toUpperCase()}</button>`).join('')}
+    </div></div>
+
+    ${lxSec(LXI.lang, t('settings.idioma').toUpperCase())}
+    <div class="lx-card"><div class="lx-seg idioma" id="langRow">
+      ${GameI18n.availableLanguages().map((lang) => `<button class="${lang === GameI18n.getLang() ? 'active' : ''}" data-lang="${lang}">${labels[lang] || lang}</button>`).join('')}
+    </div></div>
+
+    ${lxSec(LXI.user, 'CONTA')}
+    ${acct}`;
 }
 
 /** Tema visual da interface: 'premium' (padrão) ou 'pixel'. */
@@ -1157,98 +1327,50 @@ function showSettingsOverlay() {
     });
   });
 
-  const actionsEl = document.getElementById('overlayActions');
-  actionsEl.innerHTML = '';
+  const swS = document.getElementById('swSound');
+  if (swS) swS.addEventListener('click', () => { document.getElementById('soundBtn').click(); showSettingsOverlay(); });
+  const swM = document.getElementById('swMusic');
+  if (swM) swM.addEventListener('click', () => { ensureAudio(); GameAudio.toggleMusic(); showSettingsOverlay(); });
+  const outBtn = document.getElementById('setLogout');
+  if (outBtn) outBtn.addEventListener('click', () => { hideOverlay(); logout(); showMainMenu(); });
 
-  const soundBtnEl = document.createElement('button');
-  soundBtnEl.className = 'overlay-btn';
-  soundBtnEl.textContent = GameAudio.isSoundEnabled() ? t('settings.desligarSom') : t('settings.ligarSom');
-  soundBtnEl.onclick = () => { document.getElementById('soundBtn').click(); showSettingsOverlay(); };
-  actionsEl.appendChild(soundBtnEl);
-
-  const musicBtnEl = document.createElement('button');
-  musicBtnEl.className = 'overlay-btn secondary';
-  musicBtnEl.textContent = GameAudio.isMusicEnabled() ? t('settings.desligarMusica') : t('settings.ligarMusica');
-  musicBtnEl.onclick = () => { ensureAudio(); GameAudio.toggleMusic(); showSettingsOverlay(); };
-  actionsEl.appendChild(musicBtnEl);
-
+  const acts = [{ label: t('common.voltarMenu').replace(/^[^\p{L}]+/u, '').toUpperCase(), back: true, onclick: () => { hideOverlay(); showMainMenu(); } }];
   if (playerName) {
-    const testCoinsBtn = document.createElement('button');
-    testCoinsBtn.className = 'overlay-btn secondary';
-    testCoinsBtn.textContent = '🧪 +500 moedas (teste)';
-    testCoinsBtn.onclick = () => {
-      GameCoins.earn(500);
-      GameAudio.playCoin();
-      updateCoinDisplay();
-      showSettingsOverlay();
-    };
-    actionsEl.appendChild(testCoinsBtn);
-
-    const logoutBtnEl = document.createElement('button');
-    logoutBtnEl.className = 'overlay-btn secondary';
-    logoutBtnEl.textContent = t('menu.trocarJogador');
-    logoutBtnEl.onclick = () => { hideOverlay(); logout(); showMainMenu(); };
-    actionsEl.appendChild(logoutBtnEl);
+    acts.push({ label: '+500 MOEDAS (TESTE)', secondary: true, onclick: () => {
+      GameCoins.earn(500); GameAudio.playCoin(); updateCoinDisplay(); showSettingsOverlay();
+    } });
   }
+  lxActions(acts);
 
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'overlay-btn secondary';
-  closeBtn.textContent = t('common.voltarMenu');
-  closeBtn.onclick = () => { hideOverlay(); showMainMenu(); };
-  actionsEl.appendChild(closeBtn);
-
-  document.getElementById('overlay').style.display = 'flex';
+  lxShow();
 }
 
 /** Manual do jogo: controles, modos, campeonato e os sistemas (moedas/XP/loja/etc). */
-function showHelpOverlay() {
-  showOverlay(GameI18n.t('help.title'), '', [{ label: GameI18n.t('common.voltarMenu'), action: () => showMainMenu() }]);
-  document.getElementById('overlayMsg').innerHTML = `
-    <div class="help-body">
-      <div class="help-section">
-        <div class="help-title">🕹️ Controles</div>
-        <div>Teclado: <b>W/S</b> ou <b>setas ↑/↓</b>. Barra de espaço inicia/pausa.</div>
-        <div>Toque: arraste o dedo na tela, ou use os botões ▲/▼.</div>
-      </div>
-      <div class="help-section">
-        <div class="help-title">🎮 Os 4 jogos clássicos</div>
-        <div><b>Paredão:</b> não tem raquete adversária — é você contra a parede sólida da direita, que sempre rebate. Só a CPU marca ponto quando você erra — sobreviva até o cronômetro zerar pra vencer.</div>
-        <div><b>Tênis:</b> quadra cheia, vale ponto pra qualquer lado.</div>
-        <div><b>Futebol:</b> só marca gol acertando a faixa central da trave.</div>
-        <div><b>Barreira:</b> passe a bola pela abertura que se move no meio.</div>
-      </div>
-      <div class="help-section">
-        <div class="help-title">🏆 Campeonato</div>
-        <div>Escolha um jogo e uma dificuldade geral. São 4 fases contra
-        adversários cada vez mais difíceis. Você tem 3 vidas — perde uma a
-        cada fase perdida. Vença as 4 fases pra ganhar o troféu daquele jogo.</div>
-      </div>
-      <div class="help-section">
-        <div class="help-title">🎯 Modos especiais</div>
-        <div><b>Sobrevivência:</b> a CPU acelera a cada ponto seu.</div>
-        <div><b>Contra o Tempo:</b> 60s pra marcar o máximo possível.</div>
-        <div><b>Treino Infinito:</b> bola nunca marca ponto, só pra treinar.</div>
-        <div><b>Impossível:</b> CPU no limite, recompensa maior.</div>
-        <div><b>Desafio Diário:</b> mesmo desafio pra todo mundo, todo dia.</div>
-      </div>
-      <div class="help-section">
-        <div class="help-title">🪙 Moedas, Nível e Loja</div>
-        <div>Ganhe moedas vencendo partidas, campeonatos, conquistas, sequências
-        de vitória e missões diárias. Gaste na Loja pra trocar a cor da bola,
-        raquete, tela, console, madeira, moldura, som, fonte e arena. Vitórias
-        também dão XP, que sobe seu nível.</div>
-      </div>
-      <div class="help-section">
-        <div class="help-title">📅 Missões e 🏅 Conquistas</div>
-        <div>3 missões diferentes por dia (marque pontos, vença partidas, jogue
-        modos variados). 18 conquistas pra desbloquear, cada uma com sua
-        recompensa em moedas.</div>
-      </div>
-      <div class="help-section">
-        <div>Tudo é salvo automaticamente com o nome que você usar pra entrar —
-        use o mesmo nome sempre pra manter seu progresso.</div>
-      </div>
-    </div>`;
+function showHelpOverlay(backFn) {
+  const back = backFn || (() => showMainMenu());
+  showOverlay(GameI18n.t('help.title'), '', [{ label: backFn ? 'VOLTAR' : GameI18n.t('common.voltarMenu'), action: back }]);
+  const step = (n, ill, h, p) => `<div class="lx-step"><div class="lx-stn">${n}</div><div class="lx-sti">${ill}</div><div><h4>${h}</h4><p>${p}</p></div></div>`;
+  const ic = (path, col) => `<span style="color:${col};display:grid">${lxIcon(path)}</span>`;
+  document.getElementById('overlayMsg').innerHTML =
+    lxSec(LXI.star, 'TUTORIAL EM 4 PASSOS') +
+    step(1, ic("<path d='M12 3v18M8 7l4-4 4 4M8 17l4 4 4-4'/>", '#00ff88'), 'MOVA A RAQUETE', 'Use os botões ▲ e ▼, arraste o dedo na tela ou use W/S e as setas no teclado.') +
+    step(2, '<div class="lx-ill-ball"><i></i></div>', 'REBATA A BOLA', 'Acerte a bola com a raquete para devolvê-la. Quanto mais perto da borda, mais ela ganha ângulo.') +
+    step(3, ic("<circle cx='12' cy='12' r='9'/><circle cx='12' cy='12' r='4'/>", '#ffcc33'), 'MARQUE PONTOS', 'Faça a bola passar pelo adversário. Primeiro a chegar na pontuação definida vence.') +
+    step(4, ic("<path d='M13 2L3 14h8l-1 8 10-12h-8z'/>", '#00f5ff'), 'MODOS E JOGOS', 'Paredão, Tênis, Futebol e Barreira, além dos Modos Especiais e do Campeonato.') +
+    lxSec(LXI.bars, 'OS 4 JOGOS CLÁSSICOS') +
+    `<div class="help-section"><div><b>Paredão:</b> você contra a parede sólida da direita, que sempre rebate. Só a CPU marca ponto quando você erra — sobreviva até o cronômetro zerar.</div>
+      <div><b>Tênis:</b> quadra cheia, vale ponto pra qualquer lado.</div>
+      <div><b>Futebol:</b> só marca gol acertando a faixa central da trave.</div>
+      <div><b>Barreira:</b> passe a bola pela abertura que se move no meio.</div></div>` +
+    lxSec(LXI.trophy, 'CAMPEONATO E MODOS ESPECIAIS') +
+    `<div class="help-section"><div>Escolha um jogo e uma dificuldade. São 4 fases contra adversários cada vez mais difíceis, com 3 vidas. Vença as 4 para ganhar o troféu.</div>
+      <div><b>Sobrevivência:</b> a CPU acelera a cada ponto seu.</div>
+      <div><b>Contra o Tempo:</b> 60s para marcar o máximo possível.</div>
+      <div><b>Treino Infinito:</b> a bola nunca marca ponto.</div>
+      <div><b>Impossível:</b> CPU no limite, recompensa maior.</div>
+      <div><b>Desafio Diário:</b> o mesmo desafio para todos, todo dia.</div></div>` +
+    lxSec(LXI.star, 'MOEDAS, NÍVEL E LOJA') +
+    `<div class="help-section"><div>Ganhe moedas vencendo partidas, campeonatos, conquistas e missões diárias, e gaste na Loja. Vitórias também dão XP, que sobe seu nível. Tudo é salvo com o nome que você usa para entrar.</div></div>`;
 }
 
 function showCreditsOverlay() {
@@ -1338,7 +1460,7 @@ function showAdOverlay(onComplete, rewardLabel) {
   document.getElementById('overlayMsg').textContent = `Assista até o fim pra ${label}... ${remaining}s`;
   const actionsEl = document.getElementById('overlayActions');
   actionsEl.innerHTML = '';
-  document.getElementById('overlay').style.display = 'flex';
+  lxShow();
 
   const interval = setInterval(() => {
     remaining--;
@@ -1527,7 +1649,7 @@ function checkChampionshipEnd() {
       showOverlay('Você perdeu essa fase', `O ${r.name} venceu por ${p2.score} a ${p1.score}. Vidas restantes: ${lives}. Quer tentar de novo?`, [
         { label: 'Tentar de novo', action: () => { loadRound(); startLoop(); } },
         { label: 'Sair do campeonato', action: () => endChampionship() },
-      ]);
+      ], 'lose');
     } else {
       showOverlay('Suas vidas acabaram!', `O ${r.name} venceu por ${p2.score} a ${p1.score}, e você usou todas as vidas. Assista um vídeo pra ganhar +1 vida e continuar de onde parou.`, [
         {
@@ -1540,7 +1662,7 @@ function checkChampionshipEnd() {
           }),
         },
         { label: 'Sair do campeonato', action: () => endChampionship() },
-      ]);
+      ], 'lose');
     }
   }
 }
@@ -1713,10 +1835,10 @@ function checkSurvivalPoint(scorer) {
         GameStats.recordMatch({ result: 'loss', mode, difficulty: 'sobrevivencia', pointsFor: finalScore, pointsAgainst: SURVIVAL_STARTING_LIVES });
         checkAchievements();
       }
-      showOverlay('🧟 Fim da Sobrevivência', `Você aguentou até marcar ${finalScore} ponto(s) antes de perder todas as vidas!`, [
+      showOverlay('Fim da Sobrevivência', `Você aguentou até marcar ${finalScore} ponto(s) antes de perder todas as vidas!`, [
         { label: 'Jogar de novo', action: () => startSurvivalMode() },
         { label: 'Sair', action: () => exitSpecialMode() },
-      ]);
+      ], 'lose');
     }
   } else {
     // Ponto do jogador: a CPU fica um pouco mais rápida a cada ponto sobrevivido
@@ -1854,7 +1976,7 @@ function showSpecialModesOverlay() {
   closeBtn.onclick = hideOverlay;
   actionsEl.appendChild(closeBtn);
 
-  document.getElementById('overlay').style.display = 'flex';
+  lxShow();
 }
 
 // --- Cronômetro da partida ---
@@ -1999,7 +2121,7 @@ function checkPracticeEnd() {
     } else {
       showOverlay('Fim de jogo', `A CPU venceu por ${p2.score} a ${p1.score}.`, [
         { label: 'Jogar de novo', action: () => { p1.score = 0; p2.score = 0; resetRound(); resetMatchTimer(); draw(); } },
-      ]);
+      ], 'lose');
     }
   }
 }
@@ -2042,7 +2164,7 @@ async function showParedaoResultOverlay(won) {
   }
 
   if (won) showVictoryOverlay(title, msg, actions);
-  else showOverlay(title, msg, actions);
+  else showOverlay(title, msg, actions, 'lose');
 }
 
 function updateScore() {
@@ -2274,11 +2396,11 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-var TOUCH_TAP_STEP = 4;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
-const TOUCH_HOLD_DELAY_MS = 80; // só começa a deslizar depois disso (toque curto não "foge")
-const TOUCH_SPEED_MIN = 2.2;  // velocidade ao começar a deslizar
-const TOUCH_SPEED_MAX = 8.5;   // velocidade segurando (acompanha a bola no teto de velocidade)
-const TOUCH_RAMP_MS = 220;    // tempo até atingir a velocidade máxima
+var TOUCH_TAP_STEP = 0;       // passo imediato ao tocar (px) — toque curto = ajuste fino consistente
+const TOUCH_HOLD_DELAY_MS = 0; // só começa a deslizar depois disso (toque curto não "foge")
+const TOUCH_SPEED_MIN = 4.5;  // velocidade ao começar a deslizar
+const TOUCH_SPEED_MAX = 9.5;   // velocidade segurando (acompanha a bola no teto de velocidade)
+const TOUCH_RAMP_MS = 140;    // tempo até atingir a velocidade máxima
 
 /** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
 function touchSpeedFor(keyName) {
@@ -2298,7 +2420,9 @@ function movePlayer(dtFactor) {
     return;
   }
 
-  const kbSpeed = 6;
+  const kbSpeed = 7;
+  // Limita o passo: um quadro atrasado não pode virar um "salto" da raquete.
+  dtFactor = Math.min(dtFactor, 1.4);
 
   let delta = 0;
   if (keys['w'] || keys['W'] || keys['ArrowUp']) delta -= kbSpeed;
@@ -2988,7 +3112,7 @@ setTimeout(() => {
   let busy = false;
   function strip() {
     if (busy) return; busy = true;
-    document.querySelectorAll('.champ-btn, .menu-btn, .shop-tab, .start-btn, #overlayActions button').forEach(b => {
+    document.querySelectorAll('.champ-btn, .menu-btn, .shop-tab, .start-btn, #overlayActions button, #overlayTitle, .help-title, .missions-title').forEach(b => {
       if (b.children.length) return;
       const t = b.textContent;
       if (EMO.test(t) && /[\p{L}]/u.test(t)) b.textContent = t.replace(EMO, '').trim();

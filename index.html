@@ -113,6 +113,7 @@
       <canvas class="fireworks-canvas" id="fireworksCanvas"></canvas>
       <div class="overlay-box">
         <div class="overlay-trophy" id="overlayTrophy" style="display:none;">🏆</div>
+        <div class="lx-chip" id="overlayChip" style="display:none;"></div>
         <div class="overlay-title" id="overlayTitle"></div>
         <div class="overlay-msg" id="overlayMsg"></div>
         <div class="overlay-actions" id="overlayActions"></div>
@@ -127,9 +128,9 @@
     <div class="touch-controls">
       <div class="quick-start-row">
         <div class="score-panel" id="score">00 : 00</div>
-        <span class="timer-panel" id="timerDisplay" style="display:none;">⏱ 00:00</span>
-        <button class="start-btn" id="menuBtn" style="background:linear-gradient(180deg,#555,#2a2a2a);border-color:#444;">☰</button>
-        <button class="start-btn" id="soundBtn" style="background:linear-gradient(180deg,#555,#2a2a2a);border-color:#444;">🔊</button>
+        <span class="timer-panel" id="timerDisplay" style="display:none;">00:00</span>
+        <button class="start-btn" id="menuBtn" aria-label="Menu">MENU</button>
+        <button class="start-btn" id="soundBtn" aria-label="Som">SOM</button>
         <button class="start-btn" id="startBtn">Iniciar</button>
       </div>
       <div class="pad-group">
