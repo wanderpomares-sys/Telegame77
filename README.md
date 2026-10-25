@@ -2,7 +2,7 @@
 
 ![Telegame77 Vintage 1977](og-image.jpg)
 
-**Jogue agora:** https://wanderpomares-sys.github.io/Telegame77/
+**Jogue agora:** https://telegame77.com.br/
 
 O clássico jogo de raquete e bola, em 3D no celular: Paredão, Tênis, Futebol e Barreira, campeonato, conquistas e ranking. Grátis, funciona sem internet, em português, inglês e espanhol. Criado por Wander Pomares.
 
