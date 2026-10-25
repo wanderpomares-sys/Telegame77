@@ -18,13 +18,33 @@
 
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="ui-premium">
+<body class="ui-premium need-login">
 <button id="musicBtn" class="top-music off" aria-label="Música de fundo" aria-pressed="false"><svg class="lb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path class="tm-x" d="M3 3l18 18"/></svg><span class="tm-t">MÚSICA</span></button>
 
 
 <div class="splash-screen" id="splashScreen">
   <div class="splash-title">TELE GAME</div>
   <div class="splash-sub">ARENA 3D</div>
+</div>
+
+<div class="welcome" id="welcomeScreen" role="dialog" aria-label="Entrar">
+  <div class="wl-bg" id="wlBg" aria-hidden="true"></div>
+  <header class="wl-header">
+    <div class="wl-badge"><svg class="wl-castle" viewBox="0 0 24 24" fill="none"><path d="M3 20V9l3-2v-3h2V2h2v2h4V2h2v2h2v3l3 2v11H3Z" fill="#7C5CFF"/><path d="M7 20V12h2v8H7Zm4 0V10h2v10h-2Zm4 0V12h2v8h-2Z" fill="#fff"/><circle cx="12" cy="7" r="1.4" fill="#FFD93D"/></svg><span>Castelo Mágico</span></div>
+    <h1 class="wl-title">TELE GAME <i>•</i> MAGICAL EDITION <i>•</i> 1977</h1>
+  </header>
+  <main class="wl-content">
+    <div class="wl-card">
+      <div class="wl-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg><span>Bem-vindo ao Reino</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
+      <div class="wl-input-wrap">
+        <span class="wl-ico"><svg viewBox="0 0 24 24" fill="#FFB800"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg></span>
+        <input id="welcomeName" type="text" maxlength="18" placeholder="Seu nome de jogador" autocomplete="off" autocapitalize="words" spellcheck="false">
+      </div>
+      <button id="welcomeEnter" type="button"><span class="wl-shine"></span>Entrar</button>
+    </div>
+    <div class="wl-hint">Digite seu nome acima pra entrar no Reino Mágico!</div>
+  </main>
+  <footer class="wl-footer"><span class="wl-dot"></span><span>1977 → 2026 • Criado por Wander Pomares</span></footer>
 </div>
 
 <div class="achievement-toast" id="achievementToast">

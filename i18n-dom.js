@@ -11,6 +11,10 @@
 const GameI18nDom = (function () {
   // [português, inglês, espanhol]
   const ROWS = [
+    ['Castelo Mágico', 'Magic Castle', 'Castillo Mágico'],
+    ['Bem-vindo ao Reino', 'Welcome to the Kingdom', 'Bienvenido al Reino'],
+    ['Digite seu nome acima pra entrar no Reino Mágico!', 'Type your name above to enter the Magic Kingdom!', '¡Escribe tu nombre arriba para entrar al Reino Mágico!'],
+    ['1977 → 2026 • Criado por Wander Pomares', '1977 → 2026 • Created by Wander Pomares', '1977 → 2026 • Creado por Wander Pomares'],
     ['Jogar Agora', 'Play Now', 'Jugar ahora'],
     ['Jogar', 'Play', 'Jugar'],
     ['Iniciar', 'Start', 'Iniciar'],
