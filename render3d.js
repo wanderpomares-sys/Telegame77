@@ -525,21 +525,21 @@ const Game3D = (function () {
       mat({ color: useTex ? 0xffffff : C(bc), map: useTex ? makeBallTexture(currentMode) : null, emissive: C(bc), emissiveIntensity: useTex ? 0.18 : 0.5, roughness: 0.22, metalness: 0.1 })
     );
     scene.add(ballMesh);
-    if (!ballLight) { ballLight = new THREE.PointLight(0xffffff, 1.2, 16, 2); scene.add(ballLight); }
+    if (!ballLight) { ballLight = new THREE.PointLight(0xffffff, 1.0, 9, 2); scene.add(ballLight); }
     ballLight.color = C(bc);
 
     // sombras e brilhos no chão
     const sh = () => new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: getBlob(), transparent: true, depthWrite: false, fog: false }));
     ballShadow = sh(); p1Shadow = sh(); p2Shadow = sh();
     [ballShadow, p1Shadow, p2Shadow].forEach((m) => { m.rotation.x = -Math.PI / 2; m.position.y = 0.03; scene.add(m); });
-    ballGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: getSoftSprite(), color: C(bc), transparent: true, opacity: 0.38, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
-    ballGlow.rotation.x = -Math.PI / 2; ballGlow.position.y = 0.05; ballGlow.scale.set(4.4, 4.4, 1); scene.add(ballGlow);
+    ballGlow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: getSoftSprite(), color: C(bc), transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+    ballGlow.rotation.x = -Math.PI / 2; ballGlow.position.y = 0.05; ballGlow.scale.set(2.2, 2.2, 1); scene.add(ballGlow);
 
     // rastro
     const tg = new THREE.BufferGeometry();
     tg.setAttribute('position', new THREE.BufferAttribute(tPos, 3));
     tg.setAttribute('color', new THREE.BufferAttribute(tCol, 3));
-    trailPts = new THREE.Points(tg, new THREE.PointsMaterial({ size: 1.15, map: getSoftSprite(), vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
+    trailPts = new THREE.Points(tg, new THREE.PointsMaterial({ size: 0.8, map: getSoftSprite(), vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }));
     trailPts.frustumCulled = false; trailPts.userData.color = C(bc); scene.add(trailPts);
 
     // partículas
@@ -687,11 +687,11 @@ const Game3D = (function () {
     const spd = Math.hypot(st.ball.vx, st.ball.vy);
     ballMesh.rotation.z -= st.ball.vx * 0.02 * (dt * 60); ballMesh.rotation.x += st.ball.vy * 0.02 * (dt * 60);
     ballLight.position.set(bx, by + 1.4, bz);
-    ballLight.intensity = quality === 'alto' ? 1.5 + spd * 0.08 : 0.9;
+    ballLight.intensity = quality === 'alto' ? 1.0 + spd * 0.05 : 0.6;
     const sh = 1.7 + hop * 0.5, shA = 1 - Math.min(0.5, hop * 0.25);
     ballShadow.position.set(bx + hop * 0.15, 0.03, bz + hop * 0.15); ballShadow.scale.set(sh, sh, 1); ballShadow.material.opacity = shA;
     ballGlow.position.set(bx, 0.05, bz);
-    const gs = 4.0 + spd * 0.25; ballGlow.scale.set(gs, gs, 1);
+    const gs = 1.9 + spd * 0.08; ballGlow.scale.set(gs, gs, 1);
 
     // rastro
     const tr = st.trail, n = Math.min(tr.length, TRAIL_N), tc = trailPts.userData.color;
