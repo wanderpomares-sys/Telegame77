@@ -2514,56 +2514,47 @@ body.ui-premium:not(.in-lobby) .lb-header { padding-top: 58px; }
 .achievement-toast { top: calc(env(safe-area-inset-top, 0px) + 58px) !important; }
 body.ui-premium .lx-chip { display: none !important; }
 
-/* ===== Tela de boas-vindas (entrada) — estilo castelo mágico pastel ===== */
-@font-face { font-family:'Fredoka'; font-weight:500; font-display:swap; src:url(fonts/fredoka-latin-500-normal.woff2) format('woff2'); }
-@font-face { font-family:'Fredoka'; font-weight:700; font-display:swap; src:url(fonts/fredoka-latin-700-normal.woff2) format('woff2'); }
-@font-face { font-family:'Nunito'; font-weight:700; font-display:swap; src:url(fonts/nunito-latin-700-normal.woff2) format('woff2'); }
+/* ===== Tela de entrada — modelo "v2": lobby futurista com fotos ===== */
 @font-face { font-family:'Nunito'; font-weight:800; font-display:swap; src:url(fonts/nunito-latin-800-normal.woff2) format('woff2'); }
-.welcome { display:none; position:fixed; inset:0; z-index:60; flex-direction:column; overflow:hidden; font-family:'Nunito',system-ui,sans-serif;
-  background:linear-gradient(180deg,#EAD8FF 0%,#D9E8FF 38%,#E6F0FF 58%,#FFF6C5 100%); }
+.welcome { display:none; position:fixed; inset:0; z-index:60; flex-direction:column; overflow:hidden; background:#08080e; color:#fff; font-family:'JetBrains Mono',monospace; }
 body.need-login .welcome { display:flex; }
-body.need-login .console, body.need-login .splash-screen { visibility:visible; }
 .welcome *, .welcome *::before, .welcome *::after { box-sizing:border-box; }
-.wl-bg { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
-.wl-bokeh { position:absolute; border-radius:50%; background:#fff; opacity:.16; }
-.wl-cloud { position:absolute; background:#fff; border-radius:50px; opacity:.9; box-shadow:0 2px 0 rgba(255,255,255,.8) inset; }
-.wl-star { position:absolute; display:block; animation:wlTwinkle 2.2s ease-in-out infinite; }
-.wl-star svg { width:100%; height:100%; display:block; }
-.wl-conf { position:absolute; top:-10px; width:8px; height:8px; border-radius:50%; animation:wlFall linear infinite; }
-@keyframes wlTwinkle { 0%,100%{opacity:.35;transform:scale(.85) rotate(0)} 50%{opacity:1;transform:scale(1.2) rotate(12deg)} }
-@keyframes wlFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(6px,-14px)} }
-@keyframes wlDrift { 0%{transform:translateX(-8px)} 100%{transform:translateX(8px)} }
-@keyframes wlFall { 0%{transform:translateY(-30px) rotate(0);opacity:0} 10%{opacity:1} 100%{transform:translateY(110vh) rotate(540deg);opacity:0} }
-@keyframes wlBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-@keyframes wlShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
-.wl-header { text-align:center; padding:74px 24px 8px; position:relative; z-index:2; }
-.wl-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-radius:999px; padding:8px 16px; box-shadow:0 4px 14px rgba(0,0,0,.06); border:1px solid rgba(255,255,255,.9); }
-.wl-castle { width:22px; height:22px; }
-.wl-badge span { font-family:'Fredoka',sans-serif; font-size:10px; letter-spacing:.12em; font-weight:700; color:#6B5AE6; text-transform:uppercase; }
-.wl-title { margin:14px 0 0; font-family:'Fredoka',sans-serif; font-weight:700; font-size:19px; line-height:1.15; letter-spacing:.04em; color:#4B3AA8; text-shadow:0 2px 0 #fff,0 4px 12px rgba(124,92,255,.18); }
-.wl-title i { font-style:normal; color:#FF6EB5; }
-.wl-content { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px 22px 90px; position:relative; z-index:2; }
-.wl-card { width:100%; max-width:420px; background:rgba(255,255,255,.92); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:28px; padding:24px 20px 20px; box-shadow:0 20px 40px rgba(124,92,255,.16),0 0 0 1px rgba(255,255,255,.9) inset; position:relative; overflow:hidden; }
-.wl-card::before { content:""; position:absolute; top:0; left:0; right:0; height:54%; background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0)); border-radius:28px 28px 0 0; pointer-events:none; }
-.wl-mini { position:relative; display:inline-flex; align-items:center; gap:6px; background:linear-gradient(90deg,#FFF4C8,#FFE9FF); border-radius:999px; padding:6px 12px; margin-bottom:14px; font-family:'Fredoka',sans-serif; font-size:10px; font-weight:700; letter-spacing:.08em; color:#8B6B1F; text-transform:uppercase; }
-.wl-mini svg { width:11px; height:11px; color:#FFB800; }
-.wl-input-wrap { position:relative; margin-top:6px; }
-.wl-ico { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:22px; height:22px; display:grid; place-items:center; background:#F0E9FF; border-radius:50%; }
-.wl-ico svg { width:13px; height:13px; }
-#welcomeName { width:100%; background:#F7F3FF; border:2.5px solid transparent; border-radius:999px; padding:16px 18px 16px 50px; font-family:'Nunito',sans-serif; font-weight:800; font-size:16px; color:#5B4DB2; outline:none; transition:all .22s; -webkit-appearance:none; appearance:none; }
-#welcomeName::placeholder { color:#C1B1E8; font-weight:700; }
-#welcomeName:focus { border-color:#C4B5FD; background:#fff; box-shadow:0 0 0 6px rgba(196,181,253,.22); }
+.wl-bg { position:absolute; inset:0; pointer-events:none; }
+.wl-photo { position:absolute; left:0; width:100%; overflow:hidden; background-size:cover; }
+.wl-top { top:0; height:62%; background-image:url(img/lobby-hero.webp); background-position:center 30%; filter:grayscale(.55) contrast(1.15) brightness(.52); transform:scale(1.08); }
+.wl-bot { bottom:0; height:58%; background-image:url(img/lobby-champ.webp); background-position:center 45%; filter:grayscale(.65) contrast(1.18) brightness(.46); transform:scale(1.12); }
+.wl-bg::before { content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,rgba(8,8,14,.1) 0%,rgba(8,8,14,.62) 30%,#08080e 58%,rgba(8,8,14,.85) 72%,rgba(8,8,14,.2) 100%); }
+.wl-bg::after { content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,rgba(109,74,255,.22),transparent 55%,rgba(14,165,168,.18)); mix-blend-mode:color; }
+.wl-glow { position:absolute; z-index:2; top:-12%; left:-18%; width:90%; height:62%; border-radius:50%; filter:blur(90px); opacity:.42; background:radial-gradient(60% 60% at 30% 30%,rgba(109,74,255,.5),transparent 75%); }
+.wl-scan { position:absolute; inset:0; z-index:3; opacity:.07; background-image:repeating-linear-gradient(0deg,transparent 0 2px,#fff 2px 3px); mix-blend-mode:screen; }
+.wl-header { position:relative; z-index:10; display:flex; align-items:flex-start; gap:10px; padding:calc(20px + env(safe-area-inset-top)) 148px 12px 20px; }
+.wl-tg { flex:none; width:40px; height:40px; border-radius:12px; background:#fff; color:#000; display:grid; place-items:center; font-family:'Nunito',sans-serif; font-weight:800; font-size:15px; letter-spacing:-.05em; box-shadow:0 2px 12px rgba(255,255,255,.2); }
+.wl-name { display:flex; align-items:baseline; gap:5px; line-height:1; white-space:nowrap; padding-top:1px; }
+.wl-name b { font-family:'Nunito',sans-serif; font-weight:800; font-size:12.5px; letter-spacing:.06em; }
+.wl-name em { font-style:normal; font-family:'Nunito',sans-serif; font-weight:800; font-size:11px; letter-spacing:.08em; color:#33e8e8; }
+.wl-name s { text-decoration:none; font-size:10px; color:rgba(255,255,255,.35); margin-left:2px; }
+.wl-tag { display:flex; align-items:center; gap:8px; margin-top:7px; }
+.wl-line { width:26px; height:2px; border-radius:2px; background:#33e8e8; box-shadow:0 0 8px rgba(51,232,232,.6); flex:none; }
+.wl-tag span:last-child { font-size:9px; letter-spacing:.16em; color:rgba(255,255,255,.5); white-space:nowrap; }
+.wl-marquee { position:relative; z-index:4; padding:4px 20px 0; overflow:hidden; opacity:.035; pointer-events:none; user-select:none; }
+.wl-marquee span { display:block; white-space:nowrap; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:52px; letter-spacing:-.06em; line-height:1; }
+.wl-main { position:relative; z-index:10; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 20px 20px; }
+.wl-card { position:relative; width:100%; max-width:342px; padding:22px; display:flex; flex-direction:column; gap:18px; border-radius:32px; border:1px solid rgba(255,255,255,.11); background:linear-gradient(180deg,rgba(24,24,34,.84),rgba(16,16,24,.8)); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px); box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.14); overflow:hidden; }
+.wl-card::before { content:""; position:absolute; inset:0; opacity:.04; pointer-events:none; background-image:radial-gradient(circle,#fff 1.2px,transparent 1.6px); background-size:18px 18px; }
+.wl-field { position:relative; height:54px; border-radius:999px; background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.08); box-shadow:inset 0 1px 2px rgba(0,0,0,.6); padding:0 20px; display:flex; align-items:center; transition:all .3s; }
+.wl-field:focus-within { border-color:rgba(34,211,238,.4); background:rgba(0,0,0,.75); box-shadow:0 0 0 3px rgba(34,211,238,.12),inset 0 1px 2px rgba(0,0,0,.6); }
+#welcomeName { width:100%; background:transparent; border:0; outline:none; color:#fff; font-family:'JetBrains Mono',monospace; font-size:16px; letter-spacing:.01em; -webkit-appearance:none; appearance:none; }
+#welcomeName::placeholder { color:#7a8da0; }
 #welcomeName.shake { animation:wlShake .38s; }
-#welcomeEnter { width:100%; margin-top:16px; background:linear-gradient(135deg,#7C5CFF 0%,#8B7CFF 24%,#FF6EB5 100%); border:none; border-radius:999px; padding:16px 24px; font-family:'Fredoka',sans-serif; font-weight:700; font-size:17px; letter-spacing:.14em; color:#fff; text-transform:uppercase; cursor:pointer; position:relative; overflow:hidden; box-shadow:0 8px 0 #5A45C0,0 14px 28px rgba(124,92,255,.38); transition:transform .15s,box-shadow .15s; animation:wlBounce 2.2s ease-in-out infinite; -webkit-tap-highlight-color:transparent; }
-#welcomeEnter:active { transform:translateY(4px); box-shadow:0 4px 0 #5A45C0,0 8px 16px rgba(124,92,255,.32); animation:none; }
-.wl-shine { position:absolute; inset:0; background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.36) 50%,transparent 80%); transform:translateX(-120%) skewX(-14deg); animation:wlShine 3.4s ease-in-out infinite; }
-@keyframes wlShine { 0%,60%{transform:translateX(-120%) skewX(-14deg)} 100%{transform:translateX(120%) skewX(-14deg)} }
-.wl-hint { margin-top:18px; max-width:420px; font-family:'Fredoka',sans-serif; font-size:12.5px; font-weight:500; color:#7B6FA8; text-align:center; line-height:1.4; background:rgba(255,255,255,.66); padding:10px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.8); }
-.wl-footer { position:absolute; left:0; right:0; bottom:0; padding:16px 18px 22px; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Fredoka',sans-serif; font-size:10px; letter-spacing:.14em; font-weight:500; color:#8B7DB8; text-transform:uppercase; z-index:3; }
-.wl-dot { width:8px; height:8px; background:#4ADE80; border-radius:50%; box-shadow:0 0 0 3px rgba(74,222,128,.22); flex:none; }
-/* botão de música sobre a tela de boas-vindas: pílula branca */
-body.need-login .top-music, body.need-login .top-music.off { background:#fff !important; border:1.5px solid #fff !important; color:#6D5AE6 !important; box-shadow:0 6px 18px rgba(124,92,255,.15) !important; font-family:'Fredoka',sans-serif !important; }
-body.need-login .top-music.off { color:#9A8FC4 !important; }
-@media (max-height:640px) { .wl-header{padding-top:62px} .wl-content{padding-bottom:60px} }
-@media (prefers-reduced-motion: reduce) { .wl-conf,.wl-bokeh,.wl-cloud,.wl-star,#welcomeEnter,.wl-shine{animation:none !important} }
-.wl-title { text-wrap:balance; }
+@keyframes wlShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+#welcomeEnter { position:relative; width:100%; height:56px; border:0; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:800; font-size:15px; letter-spacing:.08em; text-transform:uppercase; color:#fff; cursor:pointer; background:linear-gradient(135deg,#6d4aff,#0ea5a8); box-shadow:0 4px 16px rgba(0,0,0,.3),0 0 24px rgba(109,74,255,.35); transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .2s; -webkit-tap-highlight-color:transparent; }
+#welcomeEnter:active { transform:scale(.97); }
+#welcomeEnter.is-empty { background:linear-gradient(180deg,#3a3a4a,#2a2a36); color:rgba(255,255,255,.5); box-shadow:0 4px 16px rgba(0,0,0,.3); }
+.wl-hint { margin:20px 0 0; padding:0 24px; text-align:center; font-size:10px; line-height:1.5; letter-spacing:.18em; color:rgba(255,255,255,.4); text-transform:uppercase; }
+.wl-footer { position:relative; z-index:10; display:flex; flex-direction:column; align-items:center; gap:6px; padding:4px 20px calc(16px + env(safe-area-inset-bottom)); }
+.wl-credit { display:flex; align-items:center; gap:8px; font-size:9px; letter-spacing:.18em; color:rgba(255,255,255,.4); text-transform:uppercase; text-align:center; }
+.wl-dot { width:6px; height:6px; border-radius:50%; background:#2eff88; box-shadow:0 0 8px rgba(46,255,136,.6); animation:wlPulse 2s ease-in-out infinite; flex:none; }
+@keyframes wlPulse { 50%{opacity:.4} }
+.wl-pill { padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.05); font-size:8px; letter-spacing:.16em; color:rgba(255,255,255,.3); text-transform:uppercase; text-align:center; }
+@media (max-height:620px) { .wl-marquee{display:none} .wl-card{gap:12px;padding:16px} }
+@media (prefers-reduced-motion: reduce) { .wl-dot,#welcomeName.shake{animation:none !important} }

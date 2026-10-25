@@ -11,9 +11,8 @@
 const GameI18nDom = (function () {
   // [português, inglês, espanhol]
   const ROWS = [
-    ['Castelo Mágico', 'Magic Castle', 'Castillo Mágico'],
-    ['Bem-vindo ao Reino', 'Welcome to the Kingdom', 'Bienvenido al Reino'],
-    ['Digite seu nome acima pra entrar no Reino Mágico!', 'Type your name above to enter the Magic Kingdom!', '¡Escribe tu nombre arriba para entrar al Reino Mágico!'],
+    ['Digite seu nome acima pra entrar', 'Type your name above to start', 'Escribe tu nombre arriba para entrar'],
+    ['Edição vintage • jogo original de 1977 • Telegame77', 'Vintage edition • original 1977 game • Telegame77', 'Edición vintage • juego original de 1977 • Telegame77'],
     ['1977 → 2026 • Criado por Wander Pomares', '1977 → 2026 • Created by Wander Pomares', '1977 → 2026 • Creado por Wander Pomares'],
     ['Jogar Agora', 'Play Now', 'Jugar ahora'],
     ['Jogar', 'Play', 'Jugar'],

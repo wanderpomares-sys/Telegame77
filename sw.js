@@ -10,7 +10,7 @@
  * número da versão em CACHE_NAME abaixo — é assim que o navegador sabe que
  * precisa baixar tudo de novo em vez de usar a cópia antiga guardada.
  */
-const CACHE_VERSION = 'v54';
+const CACHE_VERSION = 'v55';
 const CACHE_NAME = 'telegamevintage-' + CACHE_VERSION;
 
 // Arquivos essenciais pro jogo abrir e rodar sem rede.
@@ -39,9 +39,6 @@ const APP_SHELL = [
   'img/lobby-champ.webp',
   'img/lobby-store.webp',
   'fonts/space-grotesk-latin-500-normal.woff2',
-  'fonts/fredoka-latin-500-normal.woff2',
-  'fonts/fredoka-latin-700-normal.woff2',
-  'fonts/nunito-latin-700-normal.woff2',
   'fonts/nunito-latin-800-normal.woff2',
   'fonts/space-grotesk-latin-700-normal.woff2',
   'fonts/jetbrains-mono-latin-400-normal.woff2',

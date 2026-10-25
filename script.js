@@ -393,29 +393,14 @@ function prefillWelcomeName() {
   const el = document.getElementById('welcomeName');
   if (!el || el.value) return;
   try { const n = localStorage.getItem('tg-lastname'); if (n) el.value = n; } catch (e) { /* ok */ }
+  const b = document.getElementById('welcomeEnter');
+  if (b) b.classList.toggle('is-empty', !el.value.trim());
 }
 (function initWelcome() {
-  const bg = document.getElementById('wlBg');
   const input = document.getElementById('welcomeName');
   const btn = document.getElementById('welcomeEnter');
-  if (!bg || !input || !btn) return;
-  const star = (c) => `<svg viewBox="0 0 24 24" fill="${c}"><path d="M12 1l2.2 7.8L22 12l-7.8 2.2L12 23l-2.2-8.8L2 12l7.8-2.2z"/></svg>`;
-  let h = '';
-  [[52,78,16,5,0],[300,140,12,6,.3],[60,520,22,5.5,.6],[310,430,10,4.8,.9]].forEach(([x,y,s,d,dl]) => {
-    h += `<i class="wl-bokeh" style="left:${x}px;top:${y}px;width:${s*3}px;height:${s*3}px;animation:wlFloat ${d}s ease-in-out ${dl}s infinite"></i>`;
-  });
-  [[22,108,84,28,3.8],[34,96,62,22,0],[0,184,74,26,4.2,1],[0,172,52,20,0,1]].forEach(([x,y,w,hh,d,r]) => {
-    const pos = r ? `right:${x ? x : 24}px` : `left:${x}px`;
-    h += `<i class="wl-cloud" style="${pos};top:${y}px;width:${w}px;height:${hh}px;${d ? `animation:wlDrift ${d}s ease-in-out infinite alternate;` : ''}"></i>`;
-  });
-  [[54,206,18,'#8B7CFF',0],[122,124,14,'#FFB800',.4],[300,260,16,'#FF6EB5',.8],[82,470,13,'#7C5CFF',1.1],[270,590,15,'#FFB800',.2],[170,360,12,'#8B7CFF',1.4]].forEach(([x,y,s,c,dl]) => {
-    h += `<span class="wl-star" style="left:${x}px;top:${y}px;width:${s}px;height:${s}px;animation-delay:${dl}s">${star(c)}</span>`;
-  });
-  [['#FF6EB5',18,7,.2],['#7C5CFF',34,6.2,1],['#FFD93D',68,7.5,.6],['#4ADE80',82,5.8,1.8]].forEach(([c,l,d,dl]) => {
-    h += `<i class="wl-conf" style="left:${l}%;background:${c};animation-duration:${d}s;animation-delay:${dl}s"></i>`;
-  });
-  bg.innerHTML = h;
-
+  if (!input || !btn) return;
+  input.addEventListener('input', () => btn.classList.toggle('is-empty', !input.value.trim()));
   const go = () => {
     const v = input.value.trim();
     if (!v) {

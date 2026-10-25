@@ -28,23 +28,33 @@
 </div>
 
 <div class="welcome" id="welcomeScreen" role="dialog" aria-label="Entrar">
-  <div class="wl-bg" id="wlBg" aria-hidden="true"></div>
+  <div class="wl-bg" aria-hidden="true">
+    <div class="wl-photo wl-top"></div>
+    <div class="wl-photo wl-bot"></div>
+    <div class="wl-glow"></div>
+    <div class="wl-scan"></div>
+  </div>
   <header class="wl-header">
-    <div class="wl-badge"><svg class="wl-castle" viewBox="0 0 24 24" fill="none"><path d="M3 20V9l3-2v-3h2V2h2v2h4V2h2v2h2v3l3 2v11H3Z" fill="#7C5CFF"/><path d="M7 20V12h2v8H7Zm4 0V10h2v10h-2Zm4 0V12h2v8h-2Z" fill="#fff"/><circle cx="12" cy="7" r="1.4" fill="#FFD93D"/></svg><span>Castelo Mágico</span></div>
-    <h1 class="wl-title">TELE GAME <i>•</i> MAGICAL EDITION <i>•</i> 1977</h1>
+    <span class="wl-tg">TG</span>
+    <div class="wl-brand">
+      <div class="wl-name"><b>TELEGAME77</b> <em>VINTAGE</em> <s>1977</s></div>
+      <div class="wl-tag"><span class="wl-line"></span><span>LOBBY // FUTURE-RETRO</span></div>
+    </div>
   </header>
-  <main class="wl-content">
+  <div class="wl-marquee" aria-hidden="true"><span>TELEGAME77 • DISPUTA • 1V1 • VINTAGE •</span></div>
+  <main class="wl-main">
     <div class="wl-card">
-      <div class="wl-mini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg><span>Bem-vindo ao Reino</span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></div>
-      <div class="wl-input-wrap">
-        <span class="wl-ico"><svg viewBox="0 0 24 24" fill="#FFB800"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z"/></svg></span>
+      <div class="wl-field">
         <input id="welcomeName" type="text" maxlength="18" placeholder="Seu nome de jogador" autocomplete="off" autocapitalize="words" spellcheck="false">
       </div>
-      <button id="welcomeEnter" type="button"><span class="wl-shine"></span>Entrar</button>
+      <button id="welcomeEnter" type="button" class="is-empty">Entrar</button>
     </div>
-    <div class="wl-hint">Digite seu nome acima pra entrar no Reino Mágico!</div>
+    <p class="wl-hint">Digite seu nome acima pra entrar</p>
   </main>
-  <footer class="wl-footer"><span class="wl-dot"></span><span>1977 → 2026 • Criado por Wander Pomares</span></footer>
+  <footer class="wl-footer">
+    <div class="wl-credit"><span class="wl-dot"></span><span>1977 → 2026 • Criado por Wander Pomares</span></div>
+    <div class="wl-pill">Edição vintage • jogo original de 1977 • Telegame77</div>
+  </footer>
 </div>
 
 <div class="achievement-toast" id="achievementToast">
