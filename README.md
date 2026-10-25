@@ -1,4 +1,12 @@
-# Tele Game Vintage — Código-fonte
+# Telegame77 Vintage 1977
+
+![Telegame77 Vintage 1977](og-image.jpg)
+
+**Jogue agora:** https://wanderpomares-sys.github.io/Telegame77/
+
+O clássico jogo de raquete e bola, em 3D no celular: Paredão, Tênis, Futebol e Barreira, campeonato, conquistas e ranking. Grátis, funciona sem internet, em português, inglês e espanhol. Criado por Wander Pomares.
+
+## Código-fonte
 
 Jogo estilo Pong inspirado no Telejogo (Philco-Ford, 1977), reconstruído com
 HTML5 Canvas, CSS e JavaScript puro — sem frameworks, sem bibliotecas de jogo.
