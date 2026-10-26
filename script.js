@@ -2436,11 +2436,11 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-var TOUCH_TAP_STEP = 2;       // passo mínimo garantido ao encostar (toque muito rápido ainda move um pouco)       // passo imediato ao tocar (px): toque curto = ajuste fino
+var TOUCH_TAP_STEP = 1;       // passo mínimo garantido ao encostar
 const TOUCH_HOLD_DELAY_MS = 0; // sem atraso: o movimento começa na hora e depende só de quanto tempo o botão fica apertado
-const TOUCH_SPEED_MIN = 2.5;  // velocidade ao encostar (px/quadro): toque curto = deslocamento pequeno e previsível
-const TOUCH_SPEED_MAX = 8;   // velocidade com o botão segurado (atravessa a quadra em ~0,7 s)
-const TOUCH_RAMP_MS = 350;    // aceleração linear até a velocidade máxima
+const TOUCH_SPEED_MIN = 1.2;  // velocidade ao encostar (px/quadro): toque curto = deslocamento bem pequeno
+const TOUCH_SPEED_MAX = 8.5;   // velocidade com o botão segurado
+const TOUCH_RAMP_MS = 450;    // tempo até a velocidade máxima (curva suave: começa devagar, acelera depois)
 
 /** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
 function touchSpeedFor(keyName) {
@@ -2448,7 +2448,7 @@ function touchSpeedFor(keyName) {
   const held = performance.now() - startedAt;
   if (held < TOUCH_HOLD_DELAY_MS) return 0;
   const t = Math.min(1, Math.max(0, (held - TOUCH_HOLD_DELAY_MS) / TOUCH_RAMP_MS));
-  return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t;
+  return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t * t;
 }
 
 /** Move a raquete do jogador conforme teclado e botões de toque. */
