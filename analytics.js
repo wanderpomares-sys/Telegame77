@@ -1,9 +1,8 @@
 /**
  * analytics.js — Camada de abstração pra medir o jogo.
  *
- * IMPORTANTE: isso NÃO envia dados pra nenhum servidor ainda. Não existe
- * nenhuma plataforma de analytics (Firebase, GA4, etc.) configurada neste
- * projeto — conectar uma é "CONFIGURAÇÃO EXTERNA NECESSÁRIA" (ver README).
+ * NOTA: no site telegame77.com.br os eventos também são enviados ao Google
+ * Analytics 4 (medição anônima, sem dados pessoais).
  *
  * O que esse módulo faz hoje: guarda os eventos localmente (só os últimos
  * 200, pra não crescer sem limite) e imprime no console — assim, quando uma
@@ -13,7 +12,29 @@
  * através de `GameAnalytics.track()`, não direto numa plataforma.
  */
 const GameAnalytics = (function () {
-  const ENABLED = false; // vira true quando uma plataforma real estiver conectada
+  const GA_ID = 'G-JMCS7PB32Z';
+  // Google Analytics 4: só no site oficial (não em localhost nem em app empacotado)
+  const ENABLED = typeof location !== 'undefined' && location.hostname === 'telegame77.com.br';
+
+  function loadGA() {
+    if (!ENABLED || window.gtag) return;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+    gtag('js', new Date());
+    gtag('config', GA_ID, {
+      anonymize_ip: true,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
+      page_location: location.origin + location.pathname,
+      page_referrer: ''
+    });
+  }
+  if (document.readyState === 'complete') loadGA();
+  else window.addEventListener('load', loadGA);
   const LOG_LIMIT = 200;
   const STORAGE_KEY = 'telegamevintage-analytics-log';
 
@@ -39,9 +60,8 @@ const GameAnalytics = (function () {
     if (queue.length > LOG_LIMIT) queue.shift();
     await GameStorage.setJSON(STORAGE_KEY, queue);
 
-    if (ENABLED) {
-      // TODO (configuração externa necessária): trocar por uma chamada real,
-      // ex: firebase.analytics().logEvent(name, params);
+    if (ENABLED && window.gtag) {
+      try { gtag('event', String(name).slice(0, 40), params || {}); } catch (e) {}
     }
   }
 
