@@ -2445,19 +2445,12 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-var TOUCH_TAP_STEP = 7;        // toque = um passo curto e fixo (px), sempre igual
-const TOUCH_HOLD_DELAY_MS = 170; // só vira "segurar" depois disso; antes é só toque (não corre)
-const TOUCH_SPEED_MIN = 2.5;   // velocidade ao começar a segurar (px/quadro)
-const TOUCH_SPEED_MAX = 8;     // velocidade com o botão segurado por mais tempo
-const TOUCH_RAMP_MS = 600;     // tempo, depois do atraso, até a velocidade máxima
+var TOUCH_TAP_STEP = 0;         // sem passo extra: o deslocamento depende só de quanto tempo o botão fica apertado
+const TOUCH_SPEED = 3.6;       // velocidade FIXA (px/quadro) enquanto o botão está apertado: igual ao direcional de console
 
-/** Velocidade do botão de toque: zero em toque curto; só acelera se continuar segurando. */
+/** Velocidade constante enquanto o botão estiver apertado: previsível, sem aceleração nem atraso. */
 function touchSpeedFor(keyName) {
-  const startedAt = touchPressStartedAt[keyName] || 0;
-  const held = performance.now() - startedAt;
-  if (held < TOUCH_HOLD_DELAY_MS) return 0;
-  const t = Math.min(1, (held - TOUCH_HOLD_DELAY_MS) / TOUCH_RAMP_MS);
-  return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t;
+  return TOUCH_SPEED;
 }
 
 /** Move a raquete do jogador conforme teclado e botões de toque. */
