@@ -256,7 +256,16 @@ function bindHoldPointer(el, keyName) {
   el.addEventListener('pointerup', release);
   el.addEventListener('pointercancel', release);
   el.addEventListener('pointerleave', release);
+  el.addEventListener('lostpointercapture', release);
 }
+function releaseAllTouchKeys() {
+  keys['touchP1Up'] = false;
+  keys['touchP1Down'] = false;
+}
+window.addEventListener('blur', releaseAllTouchKeys);
+document.addEventListener('visibilitychange', () => { if (document.hidden) releaseAllTouchKeys(); });
+window.addEventListener('pointerup', releaseAllTouchKeys);
+window.addEventListener('pointercancel', releaseAllTouchKeys);
 
 bindHoldPointer(document.getElementById('p1up'), 'touchP1Up');
 bindHoldPointer(document.getElementById('p1down'), 'touchP1Down');
@@ -2436,19 +2445,19 @@ function rallyFocusFactor() {
   return clamp(1 - rallyHits * 0.025, 0.55, 1);
 }
 
-var TOUCH_TAP_STEP = 1;       // passo mínimo garantido ao encostar
-const TOUCH_HOLD_DELAY_MS = 0; // sem atraso: o movimento começa na hora e depende só de quanto tempo o botão fica apertado
-const TOUCH_SPEED_MIN = 1.2;  // velocidade ao encostar (px/quadro): toque curto = deslocamento bem pequeno
-const TOUCH_SPEED_MAX = 8.5;   // velocidade com o botão segurado
-const TOUCH_RAMP_MS = 450;    // tempo até a velocidade máxima (curva suave: começa devagar, acelera depois)
+var TOUCH_TAP_STEP = 7;        // toque = um passo curto e fixo (px), sempre igual
+const TOUCH_HOLD_DELAY_MS = 170; // só vira "segurar" depois disso; antes é só toque (não corre)
+const TOUCH_SPEED_MIN = 2.5;   // velocidade ao começar a segurar (px/quadro)
+const TOUCH_SPEED_MAX = 8;     // velocidade com o botão segurado por mais tempo
+const TOUCH_RAMP_MS = 600;     // tempo, depois do atraso, até a velocidade máxima
 
-/** Calcula a velocidade atual do botão de toque com base em quanto tempo já está sendo segurado. */
+/** Velocidade do botão de toque: zero em toque curto; só acelera se continuar segurando. */
 function touchSpeedFor(keyName) {
   const startedAt = touchPressStartedAt[keyName] || 0;
   const held = performance.now() - startedAt;
   if (held < TOUCH_HOLD_DELAY_MS) return 0;
-  const t = Math.min(1, Math.max(0, (held - TOUCH_HOLD_DELAY_MS) / TOUCH_RAMP_MS));
-  return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t * t;
+  const t = Math.min(1, (held - TOUCH_HOLD_DELAY_MS) / TOUCH_RAMP_MS);
+  return TOUCH_SPEED_MIN + (TOUCH_SPEED_MAX - TOUCH_SPEED_MIN) * t;
 }
 
 /** Move a raquete do jogador conforme teclado e botões de toque. */
