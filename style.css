@@ -32,7 +32,6 @@
     color: var(--phosphor);
     padding: 20px;
     overflow-x: hidden;
-    overscroll-behavior: none;
   }
 
   .console {
