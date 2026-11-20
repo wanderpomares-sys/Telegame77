@@ -2450,7 +2450,9 @@ const TOUCH_SPEED = 3.6;       // velocidade FIXA (px/quadro) enquanto o botão 
 
 /** Velocidade constante enquanto o botão estiver apertado: previsível, sem aceleração nem atraso. */
 function touchSpeedFor(keyName) {
-  return TOUCH_SPEED;
+  // Fixa durante o toque, mas acompanha o ritmo do jogo: modos/fases com bola e CPU mais rápidas
+  // (ex.: Tênis) dão uma raquete proporcionalmente mais ágil, senão não dá tempo de alcançar a bola.
+  return Math.min(7.5, Math.max(TOUCH_SPEED, ballBaseSpeed * 1.4, cpuSpeed * 1.25));
 }
 
 /** Move a raquete do jogador conforme teclado e botões de toque. */
